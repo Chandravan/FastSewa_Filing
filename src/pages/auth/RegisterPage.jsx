@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom"
 import { Mail, Lock, User, Phone, Building2, ArrowRight, Eye, EyeOff } from "lucide-react"
 import { Button, Input, Divider } from "@/components/ui"
 import { useAuth } from "@/hooks/useAuth"
+import { notifyError, notifySuccess, notifyWarning } from "@/lib/toast"
 
 export default function RegisterPage() {
   const { register, loading } = useAuth()
@@ -29,10 +30,21 @@ export default function RegisterPage() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     const errs = validate()
-    if (Object.keys(errs).length > 0) { setErrors(errs); return }
+    if (Object.keys(errs).length > 0) {
+      setErrors(errs)
+      notifyWarning("Please fix the highlighted fields before continuing.")
+      return
+    }
+
     setErrors({})
     const result = await register(form)
-    if (result.success) navigate("/dashboard")
+    if (result.success) {
+      notifySuccess("Account created successfully.")
+      navigate("/dashboard")
+      return
+    }
+
+    notifyError(result.message, "Unable to create your account right now.")
   }
 
   return (
@@ -96,7 +108,6 @@ export default function RegisterPage() {
               Create Account <ArrowRight size={16} />
             </Button>
           </form>
-
           <p className="text-xs text-white/25 text-center mt-4 leading-relaxed">
             By creating an account, you agree to our{" "}
             <Link to="/terms" className="text-white/40 hover:text-white/70">Terms of Service</Link> and{" "}

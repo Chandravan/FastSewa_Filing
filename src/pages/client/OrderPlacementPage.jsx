@@ -1,11 +1,12 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import {
   ArrowLeft, ArrowRight, CheckCircle2, Upload,
   CreditCard, FileText, Info, Clock
 } from "lucide-react"
-import { Button, Input, Badge } from "@/components/ui"
-import { SERVICES } from "@/data/mockData"
+import { Button } from "@/components/ui"
+import { ordersApi, servicesApi, submitHostedPayment } from "@/lib/api"
+import { notifyError, notifyInfo } from "@/lib/toast"
 import { formatCurrency, cn } from "@/lib/utils"
 
 const STEPS = ["Service Details", "Documents", "Payment"]
@@ -13,58 +14,124 @@ const STEPS = ["Service Details", "Documents", "Payment"]
 export default function OrderPlacementPage() {
   const { serviceId } = useParams()
   const navigate = useNavigate()
-  const service = SERVICES.find((s) => s.id === serviceId) || SERVICES[0]
-
+  const [service, setService] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState("")
   const [step, setStep] = useState(0)
   const [form, setForm] = useState({ notes: "", files: [] })
   const [placing, setPlacing] = useState(false)
 
-  const handleNext = () => setStep((s) => Math.min(s + 1, 2))
-  const handleBack = () => step === 0 ? navigate("/services") : setStep((s) => s - 1)
+  useEffect(() => {
+    let active = true
+
+    async function loadService() {
+      setLoading(true)
+      try {
+        const data = await servicesApi.get(serviceId)
+        if (!active) return
+        setService(data.service)
+        setError("")
+      } catch (requestError) {
+        if (!active) return
+        setError(requestError.message)
+      } finally {
+        if (active) {
+          setLoading(false)
+        }
+      }
+    }
+
+    loadService()
+
+    return () => {
+      active = false
+    }
+  }, [serviceId])
+
+  const handleNext = () => setStep((current) => Math.min(current + 1, 2))
+  const handleBack = () => step === 0 ? navigate("/services") : setStep((current) => current - 1)
 
   const handleFileAdd = (e) => {
-    const files = Array.from(e.target.files).map((f) => f.name)
-    setForm((p) => ({ ...p, files: [...p.files, ...files] }))
+    const files = Array.from(e.target.files).map((file) => file.name)
+    setForm((prev) => ({ ...prev, files: [...prev.files, ...files] }))
   }
 
   const handlePlaceOrder = async () => {
+    if (!service) return
+
     setPlacing(true)
-    await new Promise((r) => setTimeout(r, 2000)) // Simulate API
-    navigate("/dashboard/orders")
+    setError("")
+    let createdOrderId = null
+
+    try {
+      const created = await ordersApi.create({
+        serviceId: service.id,
+        notes: form.notes,
+        documents: form.files.map((name) => ({ name })),
+      })
+      createdOrderId = created.order.id
+
+      const payment = await ordersApi.initiateCcavenue(createdOrderId)
+      notifyInfo("Redirecting you to CCAvenue for secure payment...")
+      submitHostedPayment(payment.payment)
+    } catch (requestError) {
+      if (createdOrderId) {
+        navigate(`/dashboard/orders/${createdOrderId}?payment=failed&message=${encodeURIComponent(requestError.message)}`)
+        return
+      }
+      notifyError(requestError, "Unable to place your order right now.")
+    } finally {
+      setPlacing(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen pt-24 pb-20 grid-bg">
+        <div className="max-w-2xl mx-auto px-6 text-white/40">Loading service details...</div>
+      </div>
+    )
+  }
+
+  if (!service) {
+    return (
+      <div className="min-h-screen pt-24 pb-20 grid-bg">
+        <div className="max-w-2xl mx-auto px-6">
+          <p className="text-red-400 mb-4">{error || "Service not found."}</p>
+          <Button onClick={() => navigate("/services")}>Back to Services</Button>
+        </div>
+      </div>
+    )
   }
 
   return (
     <div className="min-h-screen pt-24 pb-20 grid-bg">
       <div className="max-w-2xl mx-auto px-6">
-
-        {/* Back */}
         <button onClick={handleBack} className="flex items-center gap-2 text-sm text-white/40 hover:text-white transition-colors mb-8">
           <ArrowLeft size={15} /> {step === 0 ? "Back to Services" : "Previous Step"}
         </button>
 
-        {/* Stepper */}
         <div className="flex items-center gap-2 mb-10">
-          {STEPS.map((label, i) => (
-            <div key={i} className="flex items-center gap-2 flex-1 last:flex-none">
+          {STEPS.map((label, index) => (
+            <div key={index} className="flex items-center gap-2 flex-1 last:flex-none">
               <div className="flex items-center gap-2">
                 <div className={cn(
                   "w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all",
-                  i < step ? "bg-brand-500 text-white" :
-                  i === step ? "bg-brand-500/20 border-2 border-brand-500 text-brand-400" :
+                  index < step ? "bg-brand-500 text-white" :
+                  index === step ? "bg-brand-500/20 border-2 border-brand-500 text-brand-400" :
                   "bg-white/5 border border-white/10 text-white/25"
                 )}>
-                  {i < step ? <CheckCircle2 size={15} /> : i + 1}
+                  {index < step ? <CheckCircle2 size={15} /> : index + 1}
                 </div>
-                <span className={cn("text-sm font-medium hidden sm:block", i === step ? "text-white" : "text-white/30")}>
+                <span className={cn("text-sm font-medium hidden sm:block", index === step ? "text-white" : "text-white/30")}>
                   {label}
                 </span>
               </div>
-              {i < STEPS.length - 1 && <div className="flex-1 h-px bg-white/8 mx-2" />}
+              {index < STEPS.length - 1 && <div className="flex-1 h-px bg-white/8 mx-2" />}
             </div>
           ))}
         </div>
 
-        {/* Service summary (always visible) */}
         <div className="glass rounded-xl p-5 mb-6 flex items-center gap-4">
           <div className="w-12 h-12 rounded-xl bg-brand-500/10 border border-brand-500/20 flex items-center justify-center shrink-0">
             <FileText size={18} className="text-brand-400" />
@@ -80,14 +147,17 @@ export default function OrderPlacementPage() {
           </div>
         </div>
 
-        {/* Step content */}
         <div className="glass rounded-2xl p-7 animate-fade-in">
+          {error && (
+            <div className="mb-5 rounded-xl border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+              {error}
+            </div>
+          )}
           {step === 0 && <StepServiceDetails service={service} form={form} setForm={setForm} />}
           {step === 1 && <StepDocuments service={service} form={form} handleFileAdd={handleFileAdd} setForm={setForm} />}
-          {step === 2 && <StepPayment service={service} form={form} placing={placing} onPay={handlePlaceOrder} />}
+          {step === 2 && <StepPayment service={service} placing={placing} onPay={handlePlaceOrder} />}
         </div>
 
-        {/* Navigation */}
         {step < 2 && (
           <div className="flex justify-end mt-6">
             <Button onClick={handleNext} className="gap-2">
@@ -136,7 +206,7 @@ function StepServiceDetails({ service, form, setForm }) {
           rows={3}
           placeholder="Any specific instructions or details for our CA team..."
           value={form.notes}
-          onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
+          onChange={(e) => setForm((current) => ({ ...current, notes: e.target.value }))}
           className="w-full rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/20 px-4 py-3 text-sm focus:outline-none focus:border-brand-500/50 transition-all resize-none"
         />
       </div>
@@ -159,18 +229,22 @@ function StepDocuments({ service, form, handleFileAdd, setForm }) {
         </div>
         <div className="text-center">
           <p className="text-sm font-medium text-white/60">Click to upload documents</p>
-          <p className="text-xs text-white/25 mt-1">PDF, JPG, PNG · Max 10MB each</p>
+          <p className="text-xs text-white/25 mt-1">PDF, JPG, PNG | Max 10MB each</p>
         </div>
       </label>
 
       {form.files.length > 0 ? (
         <div className="space-y-2">
-          {form.files.map((name, i) => (
-            <div key={i} className="flex items-center gap-3 px-4 py-3 rounded-xl bg-green-500/8 border border-green-500/20">
+          {form.files.map((name, index) => (
+            <div key={index} className="flex items-center gap-3 px-4 py-3 rounded-xl bg-green-500/8 border border-green-500/20">
               <CheckCircle2 size={14} className="text-green-400 shrink-0" />
               <span className="text-sm text-white/60 flex-1 truncate">{name}</span>
-              <button onClick={() => setForm((f) => ({ ...f, files: f.files.filter((_, j) => j !== i) }))}
-                className="text-white/20 hover:text-red-400 text-xs transition-colors">Remove</button>
+              <button
+                onClick={() => setForm((current) => ({ ...current, files: current.files.filter((_, fileIndex) => fileIndex !== index) }))}
+                className="text-white/20 hover:text-red-400 text-xs transition-colors"
+              >
+                Remove
+              </button>
             </div>
           ))}
         </div>
@@ -191,14 +265,16 @@ function StepDocuments({ service, form, handleFileAdd, setForm }) {
 }
 
 function StepPayment({ service, placing, onPay }) {
+  const gstAmount = Math.round(service.price * 0.18)
+  const totalAmount = service.price + gstAmount
+
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-xl font-display font-bold text-white mb-1">Confirm & Pay</h2>
-        <p className="text-sm text-white/40">Review your order and complete payment via Razorpay.</p>
+        <p className="text-sm text-white/40">Review your order and continue to CCAvenue for secure payment.</p>
       </div>
 
-      {/* Bill */}
       <div className="rounded-xl bg-white/3 border border-white/8 overflow-hidden">
         <div className="px-5 py-4 border-b border-white/8">
           <p className="text-xs text-white/35 uppercase tracking-wider font-medium">Order Breakdown</p>
@@ -210,38 +286,37 @@ function StepPayment({ service, placing, onPay }) {
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-white/50">GST (18%)</span>
-            <span className="text-white font-mono">{formatCurrency(Math.round(service.price * 0.18))}</span>
+            <span className="text-white font-mono">{formatCurrency(gstAmount)}</span>
           </div>
           <div className="h-px bg-white/8" />
           <div className="flex justify-between">
             <span className="font-bold text-white">Total</span>
             <span className="font-bold text-xl text-brand-400 font-mono">
-              {formatCurrency(service.price + Math.round(service.price * 0.18))}
+              {formatCurrency(totalAmount)}
             </span>
           </div>
         </div>
       </div>
 
-      {/* Payment methods */}
       <div className="rounded-xl bg-white/3 border border-white/8 p-5">
         <p className="text-xs text-white/35 uppercase tracking-wider font-medium mb-4">Payment Via</p>
         <div className="grid grid-cols-3 gap-3 text-center text-xs text-white/40">
-          {["UPI", "Net Banking", "Cards"].map((m) => (
-            <div key={m} className="py-2 rounded-lg bg-white/4 border border-white/8">{m}</div>
+          {["UPI", "Net Banking", "Cards"].map((method) => (
+            <div key={method} className="py-2 rounded-lg bg-white/4 border border-white/8">{method}</div>
           ))}
         </div>
         <p className="text-xs text-white/25 text-center mt-3 flex items-center justify-center gap-1.5">
-          <CheckCircle2 size={11} className="text-green-400" /> Secured by Razorpay · 256-bit SSL
+          <CheckCircle2 size={11} className="text-green-400" /> Secured by CCAvenue | 256-bit SSL
         </p>
       </div>
 
       <Button className="w-full gap-2" size="lg" loading={placing} onClick={onPay}>
         <CreditCard size={16} />
-        {placing ? "Processing..." : `Pay ${formatCurrency(service.price + Math.round(service.price * 0.18))}`}
+        {placing ? "Redirecting..." : `Pay ${formatCurrency(totalAmount)}`}
       </Button>
 
       <p className="text-xs text-white/25 text-center">
-        After payment, your order will be confirmed instantly and a CA will be assigned within 24 hours.
+        CCAvenue will open in the next step. After payment, you will be sent back to your order page automatically.
       </p>
     </div>
   )

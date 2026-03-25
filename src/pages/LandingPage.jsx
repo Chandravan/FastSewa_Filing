@@ -1,17 +1,42 @@
+import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { ArrowRight, Shield, Clock, Headphones, Star, CheckCircle2, TrendingUp, Users, Award } from "lucide-react"
 import { Button, Card, Badge } from "@/components/ui"
-import { SERVICES } from "@/data/mockData"
+import { servicesApi } from "@/lib/api"
 import { formatCurrency } from "@/lib/utils"
 
 export default function LandingPage() {
   const navigate = useNavigate()
+  const [featuredServices, setFeaturedServices] = useState([])
+
+  useEffect(() => {
+    let active = true
+
+    async function loadFeaturedServices() {
+      try {
+        const data = await servicesApi.list({ popular: "true" })
+        if (active) {
+          setFeaturedServices(data.items.slice(0, 4))
+        }
+      } catch {
+        if (active) {
+          setFeaturedServices([])
+        }
+      }
+    }
+
+    loadFeaturedServices()
+
+    return () => {
+      active = false
+    }
+  }, [])
 
   return (
     <div className="min-h-screen">
       <HeroSection navigate={navigate} />
       <StatsSection />
-      <ServicesPreview navigate={navigate} />
+      <ServicesPreview navigate={navigate} services={featuredServices} />
       <WhyUsSection />
       <HowItWorks />
       <CtaSection navigate={navigate} />
@@ -88,9 +113,7 @@ function StatsSection() {
   )
 }
 
-function ServicesPreview({ navigate }) {
-  const featured = SERVICES.filter((s) => s.popular).slice(0, 4)
-
+function ServicesPreview({ navigate, services }) {
   return (
     <section className="py-24">
       <div className="max-w-7xl mx-auto px-6">
@@ -106,10 +129,16 @@ function ServicesPreview({ navigate }) {
         </div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {featured.map((service, i) => (
+          {services.map((service, i) => (
             <ServiceCard key={service.id} service={service} delay={i * 100} navigate={navigate} />
           ))}
         </div>
+
+        {services.length === 0 && (
+          <div className="glass rounded-2xl p-8 text-center text-white/40">
+            Popular services will appear here once the catalog loads.
+          </div>
+        )}
 
         <div className="mt-6 sm:hidden text-center">
           <Button variant="outline" onClick={() => navigate("/services")} className="w-full">View All Services</Button>
@@ -133,7 +162,7 @@ function ServiceCard({ service, delay, navigate }) {
       hover
       className={`animate-fade-up`}
       style={{ animationDelay: `${delay}ms`, animationFillMode: "both" }}
-      onClick={() => navigate(`/services/${service.id}`)}
+      onClick={() => navigate(`/order/${service.id}`)}
     >
       <span className={`inline-flex px-2 py-0.5 rounded-md text-xs font-medium mb-3 ${categoryColors[service.category] || "bg-white/10 text-white/50"}`}>
         {service.category}
@@ -184,7 +213,7 @@ function WhyUsSection() {
 function HowItWorks() {
   const steps = [
     { n: "01", title: "Pick a Service", desc: "Browse our catalog and select the filing you need." },
-    { n: "02", title: "Pay Securely", desc: "Pay online via Razorpay. GST invoice issued instantly." },
+    { n: "02", title: "Pay Securely", desc: "Continue to CCAvenue for secure online payment. GST invoice issued instantly." },
     { n: "03", title: "Upload Documents", desc: "Upload required docs directly in your dashboard." },
     { n: "04", title: "We File for You", desc: "Our CA team processes and files. You track live status." },
   ]

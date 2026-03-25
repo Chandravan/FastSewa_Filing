@@ -25,6 +25,8 @@ export function getStatusColor(status) {
   const map = {
     pending: "status-pending",
     paid: "status-paid",
+    failed: "status-failed",
+    refunded: "status-refunded",
     processing: "status-processing",
     completed: "status-completed",
     cancelled: "status-cancelled",

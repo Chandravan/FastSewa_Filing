@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react"
 import { Link, useNavigate, useLocation } from "react-router-dom"
-import { Menu, X, ChevronDown, Bell, LogOut, User, LayoutDashboard, FileText } from "lucide-react"
+import { Menu, X, ChevronDown, Bell, LogOut, User, LayoutDashboard, FileText, ShieldCheck } from "lucide-react"
 import { useAuth } from "@/hooks/useAuth"
 import { Button } from "@/components/ui"
+import { getPrimaryAdminRoute, hasAnyPermission } from "@/lib/adminPermissions"
 import { cn, getInitials } from "@/lib/utils"
 
 export default function Navbar() {
@@ -12,14 +13,21 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
+  const isActive = (path) => location.pathname === path
+  const primaryDashboardPath = user?.role === "admin" ? getPrimaryAdminRoute(user) : "/dashboard"
+  const canAccessAdminOrders = hasAnyPermission(user, ["orders.view", "orders.manage", "orders.bulk"])
+  const ordersPath = user?.role === "admin"
+    ? (canAccessAdminOrders ? "/admin/orders" : primaryDashboardPath)
+    : "/dashboard/orders"
+  const dashboardNavActive = user?.role === "admin"
+    ? location.pathname.startsWith("/admin")
+    : isActive("/dashboard")
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20)
     window.addEventListener("scroll", onScroll)
     return () => window.removeEventListener("scroll", onScroll)
   }, [])
-
-  const isActive = (path) => location.pathname === path
 
   const handleLogout = () => {
     logout()
@@ -49,7 +57,7 @@ export default function Navbar() {
           <NavLink to="/services" active={isActive("/services")}>Services</NavLink>
           <NavLink to="/pricing" active={isActive("/pricing")}>Pricing</NavLink>
           <NavLink to="/about" active={isActive("/about")}>About</NavLink>
-          {user && <NavLink to="/dashboard" active={isActive("/dashboard")}>Dashboard</NavLink>}
+          {user && <NavLink to={primaryDashboardPath} active={dashboardNavActive}>{user.role === "admin" ? "Admin Panel" : "Dashboard"}</NavLink>}
         </div>
 
         {/* Right side */}
@@ -82,8 +90,14 @@ export default function Navbar() {
                       <p className="text-xs text-white/40 truncate">{user.email}</p>
                     </div>
                     <div className="p-1">
-                      <DropdownItem icon={LayoutDashboard} to="/dashboard" onClick={() => setProfileOpen(false)}>Dashboard</DropdownItem>
-                      <DropdownItem icon={FileText} to="/dashboard/orders" onClick={() => setProfileOpen(false)}>My Orders</DropdownItem>
+                      <DropdownItem icon={user.role === "admin" ? ShieldCheck : LayoutDashboard} to={primaryDashboardPath} onClick={() => setProfileOpen(false)}>
+                        {user.role === "admin" ? "Admin Panel" : "Dashboard"}
+                      </DropdownItem>
+                      {(user.role !== "admin" || canAccessAdminOrders) && (
+                        <DropdownItem icon={FileText} to={ordersPath} onClick={() => setProfileOpen(false)}>
+                          {user.role === "admin" ? "Order Desk" : "My Orders"}
+                        </DropdownItem>
+                      )}
                       <DropdownItem icon={User} to="/dashboard/profile" onClick={() => setProfileOpen(false)}>Profile</DropdownItem>
                     </div>
                     <div className="p-1 border-t border-white/8">
@@ -119,7 +133,9 @@ export default function Navbar() {
           <MobileLink to="/pricing" onClick={() => setMobileOpen(false)}>Pricing</MobileLink>
           {user ? (
             <>
-              <MobileLink to="/dashboard" onClick={() => setMobileOpen(false)}>Dashboard</MobileLink>
+              <MobileLink to={primaryDashboardPath} onClick={() => setMobileOpen(false)}>
+                {user.role === "admin" ? "Admin Panel" : "Dashboard"}
+              </MobileLink>
               <button onClick={handleLogout} className="text-left px-3 py-2.5 text-sm text-red-400">Sign out</button>
             </>
           ) : (

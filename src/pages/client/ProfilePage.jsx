@@ -1,15 +1,23 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { User, Mail, Phone, Building2, MapPin, Shield, Edit3, Save, X, CreditCard } from "lucide-react"
 import { Button, Input } from "@/components/ui"
 import { useAuth } from "@/hooks/useAuth"
+import { usersApi } from "@/lib/api"
+import { notifyError, notifySuccess, notifyWarning } from "@/lib/toast"
 import { getInitials, formatDate } from "@/lib/utils"
 
 export default function ProfilePage() {
-  const { user } = useAuth()
+  const { user, updateUser, changePassword, loading } = useAuth()
   const navigate = useNavigate()
   const [editing, setEditing] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [passwordFormOpen, setPasswordFormOpen] = useState(false)
+  const [passwordForm, setPasswordForm] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  })
   const [form, setForm] = useState({
     name: user?.name || "",
     phone: user?.phone || "",
@@ -19,6 +27,17 @@ export default function ProfilePage() {
     address: user?.address || "",
   })
 
+  useEffect(() => {
+    setForm({
+      name: user?.name || "",
+      phone: user?.phone || "",
+      businessName: user?.businessName || "",
+      pan: user?.pan || "",
+      gstin: user?.gstin || "",
+      address: user?.address || "",
+    })
+  }, [user])
+
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -27,13 +46,56 @@ export default function ProfilePage() {
     )
   }
 
-  const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }))
+  const set = (key) => (e) => setForm((current) => ({ ...current, [key]: e.target.value }))
+  const setPasswordField = (key) => (event) => setPasswordForm((current) => ({ ...current, [key]: event.target.value }))
 
   const handleSave = async () => {
     setSaving(true)
-    await new Promise((r) => setTimeout(r, 1000))
-    setSaving(false)
-    setEditing(false)
+    try {
+      const data = await usersApi.updateProfile(form)
+      updateUser(data.user)
+      setEditing(false)
+      notifySuccess("Profile updated successfully.")
+    } catch (requestError) {
+      notifyError(requestError, "Unable to update your profile right now.")
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleChangePassword = async () => {
+    if (!passwordForm.currentPassword || !passwordForm.newPassword || !passwordForm.confirmPassword) {
+      notifyWarning("Please fill in all password fields.")
+      return
+    }
+
+    if (passwordForm.newPassword.length < 8) {
+      notifyWarning("New password must be at least 8 characters long.")
+      return
+    }
+
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      notifyWarning("New passwords do not match.")
+      return
+    }
+
+    const result = await changePassword({
+      currentPassword: passwordForm.currentPassword,
+      newPassword: passwordForm.newPassword,
+    })
+
+    if (!result.success) {
+      notifyError(result.message, "Unable to change password right now.")
+      return
+    }
+
+    notifySuccess(result.message || "Password changed successfully.")
+    setPasswordForm({
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    })
+    setPasswordFormOpen(false)
   }
 
   return (
@@ -60,7 +122,6 @@ export default function ProfilePage() {
           )}
         </div>
 
-        {/* Avatar section */}
         <div className="glass rounded-2xl p-6 mb-6 flex items-center gap-5">
           <div className="w-16 h-16 rounded-2xl bg-brand-500/20 border-2 border-brand-500/30 flex items-center justify-center shrink-0">
             <span className="text-brand-400 font-display font-bold text-xl">
@@ -73,7 +134,6 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Personal Info */}
         <Section title="Personal Information" icon={User}>
           <div className="grid sm:grid-cols-2 gap-4">
             {editing ? (
@@ -91,7 +151,6 @@ export default function ProfilePage() {
           </div>
         </Section>
 
-        {/* Business Info */}
         <Section title="Business Details" icon={Building2}>
           <div className="grid sm:grid-cols-2 gap-4">
             {editing ? (
@@ -120,14 +179,47 @@ export default function ProfilePage() {
           </div>
         </Section>
 
-        {/* Security */}
         <Section title="Security" icon={Shield}>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-white/70">Password</p>
-              <p className="text-xs text-white/35 mt-0.5">Last changed 3 months ago</p>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <p className="text-sm font-medium text-white/70">Password</p>
+                <p className="text-xs text-white/35 mt-0.5">
+                  {user.passwordChangedAt ? `Last changed ${formatDate(user.passwordChangedAt)}` : "Set during account creation"}
+                </p>
+              </div>
+              <Button variant="outline" size="sm" onClick={() => setPasswordFormOpen((current) => !current)}>
+                {passwordFormOpen ? "Hide Form" : "Change Password"}
+              </Button>
             </div>
-            <Button variant="outline" size="sm">Change Password</Button>
+
+            {passwordFormOpen && (
+              <div className="grid gap-4 pt-2">
+                <Input
+                  label="Current Password"
+                  type="password"
+                  value={passwordForm.currentPassword}
+                  onChange={setPasswordField("currentPassword")}
+                />
+                <Input
+                  label="New Password"
+                  type="password"
+                  value={passwordForm.newPassword}
+                  onChange={setPasswordField("newPassword")}
+                />
+                <Input
+                  label="Confirm New Password"
+                  type="password"
+                  value={passwordForm.confirmPassword}
+                  onChange={setPasswordField("confirmPassword")}
+                />
+                <div className="flex justify-end">
+                  <Button size="sm" loading={loading} onClick={handleChangePassword}>
+                    Update Password
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         </Section>
       </div>
@@ -152,7 +244,7 @@ function InfoField({ icon: Icon, label, value, mono }) {
       <Icon size={15} className="text-white/20 shrink-0 mt-0.5" />
       <div>
         <p className="text-xs text-white/30 mb-0.5">{label}</p>
-        <p className={`text-sm text-white/70 ${mono ? "font-mono" : ""}`}>{value || "—"}</p>
+        <p className={`text-sm text-white/70 ${mono ? "font-mono" : ""}`}>{value || "-"}</p>
       </div>
     </div>
   )

@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom"
 import { AuthProvider, useAuth } from "@/hooks/useAuth"
 import Navbar from "@/components/layout/Navbar"
 import Footer from "@/components/layout/Footer"
@@ -6,30 +6,66 @@ import Footer from "@/components/layout/Footer"
 // Pages
 import LandingPage from "@/pages/LandingPage"
 import ServicesPage from "@/pages/ServicesPage"
+import ForgotPasswordPage from "@/pages/auth/ForgotPasswordPage"
 import LoginPage from "@/pages/auth/LoginPage"
 import RegisterPage from "@/pages/auth/RegisterPage"
+import ResetPasswordPage from "@/pages/auth/ResetPasswordPage"
+import AdminAuditPage from "@/pages/admin/AdminAuditPage"
+import AdminDashboardPage from "@/pages/admin/AdminDashboardPage"
+import AdminOrdersPage from "@/pages/admin/AdminOrdersPage"
+import AdminServicesPage from "@/pages/admin/AdminServicesPage"
+import AdminUsersPage from "@/pages/admin/AdminUsersPage"
 import DashboardPage from "@/pages/client/DashboardPage"
 import OrdersPage from "@/pages/client/OrdersPage"
 import OrderDetailPage from "@/pages/client/OrderDetailPage"
 import OrderPlacementPage from "@/pages/client/OrderPlacementPage"
 import ProfilePage from "@/pages/client/ProfilePage"
+import { getPrimaryAdminRoute, hasAnyPermission } from "@/lib/adminPermissions"
+import { AppToastContainer } from "@/lib/toast"
 
 // Protected route wrapper
-function ProtectedRoute({ children }) {
-  const { user } = useAuth()
-  if (!user) {
-    const stored = localStorage.getItem("fastsewa_user")
-    if (!stored) return <Navigate to="/login" replace />
+function ProtectedRoute({ children, roles, permissions }) {
+  const { user, initialized } = useAuth()
+
+  if (!initialized) {
+    return (
+      <div className="min-h-screen pt-20 flex items-center justify-center">
+        <p className="text-sm text-white/45">Loading your session...</p>
+      </div>
+    )
   }
+
+  if (!user) {
+    return <Navigate to="/login" replace />
+  }
+
+  if (roles && !roles.includes(user.role)) {
+    return <Navigate to={user.role === "admin" ? getPrimaryAdminRoute(user) : "/dashboard"} replace />
+  }
+
+  if (permissions && user.role === "admin" && !hasAnyPermission(user, permissions)) {
+    return <Navigate to={getPrimaryAdminRoute(user)} replace />
+  }
+
   return children
 }
 
+function DashboardHomeRoute() {
+  const { user } = useAuth()
+
+  if (user?.role === "admin") {
+    return <Navigate to={getPrimaryAdminRoute(user)} replace />
+  }
+
+  return <DashboardPage />
+}
+
 // Pages that don't show footer
-const NO_FOOTER_PATHS = ["/dashboard", "/login", "/register"]
+const NO_FOOTER_PATHS = ["/dashboard", "/admin", "/login", "/register", "/forgot-password", "/reset-password"]
 
 function AppLayout() {
-  const path = window.location.pathname
-  const showFooter = !NO_FOOTER_PATHS.some((p) => path.startsWith(p))
+  const location = useLocation()
+  const showFooter = !NO_FOOTER_PATHS.some((p) => location.pathname.startsWith(p))
 
   return (
     <>
@@ -40,6 +76,8 @@ function AppLayout() {
         <Route path="/services" element={<ServicesPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
 
         {/* Order placement (requires login) */}
         <Route path="/order/:serviceId" element={
@@ -48,7 +86,22 @@ function AppLayout() {
 
         {/* Dashboard routes */}
         <Route path="/dashboard" element={
-          <ProtectedRoute><DashboardPage /></ProtectedRoute>
+          <ProtectedRoute><DashboardHomeRoute /></ProtectedRoute>
+        } />
+        <Route path="/admin" element={
+          <ProtectedRoute roles={["admin"]} permissions={["dashboard.view"]}><AdminDashboardPage /></ProtectedRoute>
+        } />
+        <Route path="/admin/orders" element={
+          <ProtectedRoute roles={["admin"]} permissions={["orders.view", "orders.manage", "orders.bulk"]}><AdminOrdersPage /></ProtectedRoute>
+        } />
+        <Route path="/admin/services" element={
+          <ProtectedRoute roles={["admin"]} permissions={["services.view", "services.manage", "services.archive", "services.restore", "services.bulk"]}><AdminServicesPage /></ProtectedRoute>
+        } />
+        <Route path="/admin/users" element={
+          <ProtectedRoute roles={["admin"]} permissions={["users.view", "users.manage", "users.disable", "users.delete", "users.bulk"]}><AdminUsersPage /></ProtectedRoute>
+        } />
+        <Route path="/admin/audit" element={
+          <ProtectedRoute roles={["admin"]} permissions={["audit.view"]}><AdminAuditPage /></ProtectedRoute>
         } />
         <Route path="/dashboard/orders" element={
           <ProtectedRoute><OrdersPage /></ProtectedRoute>
@@ -73,6 +126,7 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <AppLayout />
+        <AppToastContainer />
       </AuthProvider>
     </BrowserRouter>
   )

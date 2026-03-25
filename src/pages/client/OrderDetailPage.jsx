@@ -1,35 +1,189 @@
-import { useState } from "react"
-import { useParams, useNavigate } from "react-router-dom"
+import { useEffect, useState } from "react"
+import { useParams, useNavigate, useSearchParams } from "react-router-dom"
 import {
   ArrowLeft, CheckCircle2, Circle, Upload, FileText,
-  User, Calendar, CreditCard, MessageSquare, Download
+  User, Calendar, CreditCard, MessageSquare
 } from "lucide-react"
-import { Button, StatusBadge, Badge, Card } from "@/components/ui"
-import { MOCK_ORDERS } from "@/data/mockData"
+import { Button, StatusBadge } from "@/components/ui"
+import { useAuth } from "@/hooks/useAuth"
+import { ordersApi, submitHostedPayment } from "@/lib/api"
+import { hasAnyPermission, hasPermission } from "@/lib/adminPermissions"
+import { buildWhatsAppUrl } from "@/lib/support"
+import { notifyError, notifyInfo, notifySuccess, notifyWarning } from "@/lib/toast"
 import { formatCurrency, formatDate, cn } from "@/lib/utils"
 
 export default function OrderDetailPage() {
+  const { user } = useAuth()
   const { orderId } = useParams()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const [order, setOrder] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState("")
   const [uploading, setUploading] = useState(false)
-  const [uploadedFiles, setUploadedFiles] = useState([])
+  const [processingPayment, setProcessingPayment] = useState(false)
+  const [savingAdmin, setSavingAdmin] = useState(false)
+  const [adminForm, setAdminForm] = useState({
+    status: "pending",
+    paymentStatus: "pending",
+    assignedTo: "",
+    notes: "",
+  })
+  const canViewAdminOrderDetails = hasAnyPermission(user, ["orders.view", "orders.manage", "orders.bulk"])
+  const canManageOrder = hasPermission(user, "orders.manage")
 
-  const order = MOCK_ORDERS.find((o) => o.id === orderId) || MOCK_ORDERS[0]
+  useEffect(() => {
+    let active = true
+
+    async function loadOrder() {
+      setLoading(true)
+      try {
+        const data = await ordersApi.get(orderId)
+        if (!active) return
+        setOrder(data.order)
+        setError("")
+      } catch (requestError) {
+        if (!active) return
+        setError(requestError.message)
+      } finally {
+        if (active) {
+          setLoading(false)
+        }
+      }
+    }
+
+    loadOrder()
+
+    return () => {
+      active = false
+    }
+  }, [orderId])
 
   const handleFileUpload = async (e) => {
     const files = Array.from(e.target.files)
-    if (!files.length) return
+    if (!files.length || !order) return
+
     setUploading(true)
-    await new Promise((r) => setTimeout(r, 1500)) // Simulate upload
-    setUploadedFiles((prev) => [...prev, ...files.map((f) => f.name)])
-    setUploading(false)
+    try {
+      let nextOrder = order
+
+      for (const file of files) {
+        const data = await ordersApi.addDocument(order.id, { name: file.name })
+        nextOrder = data.order
+      }
+
+      setOrder(nextOrder)
+      setError("")
+      notifySuccess(`${files.length} document${files.length === 1 ? "" : "s"} uploaded to this order.`)
+    } catch (requestError) {
+      notifyError(requestError, "Unable to upload documents right now.")
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const handlePayment = async () => {
+    if (!order) return
+
+    setProcessingPayment(true)
+    try {
+      const data = await ordersApi.initiateCcavenue(order.id)
+      setError("")
+      notifyInfo("Redirecting you to CCAvenue for secure payment...")
+      submitHostedPayment(data.payment)
+    } catch (requestError) {
+      notifyError(requestError, "Unable to start payment right now.")
+    } finally {
+      setProcessingPayment(false)
+    }
+  }
+
+  useEffect(() => {
+    if (!order) return
+
+    setAdminForm({
+      status: order.status,
+      paymentStatus: order.paymentStatus,
+      assignedTo: order.assignedTo || "",
+      notes: order.notes || "",
+    })
+  }, [order])
+
+  const setAdminField = (key) => (event) => {
+    setAdminForm((current) => ({ ...current, [key]: event.target.value }))
+  }
+
+  const handleAdminSave = async () => {
+    if (!order) return
+
+    setSavingAdmin(true)
+    try {
+      const data = await ordersApi.adminUpdate(order.id, adminForm)
+      setOrder(data.order)
+      setError("")
+      notifySuccess(data.message || "Order updated successfully.")
+    } catch (requestError) {
+      notifyError(requestError, "Unable to save admin changes right now.")
+    } finally {
+      setSavingAdmin(false)
+    }
+  }
+
+  const handleWhatsAppChat = () => {
+    const whatsappUrl = buildWhatsAppUrl({
+      orderNumber: order?.orderNumber || order?.id,
+      serviceName: order?.serviceName,
+      clientName: order?.clientName || user?.name,
+    })
+
+    window.open(whatsappUrl, "_blank", "noopener,noreferrer")
+  }
+
+  const paymentState = searchParams.get("payment")
+  const paymentMessage = searchParams.get("message")
+
+  useEffect(() => {
+    if (!paymentState) {
+      return
+    }
+
+    if (paymentState === "success") {
+      notifySuccess(paymentMessage || "Payment confirmed through CCAvenue.")
+      return
+    }
+
+    if (paymentState === "pending") {
+      notifyInfo(paymentMessage || "CCAvenue payment is still awaiting confirmation.")
+      return
+    }
+
+    if (paymentState === "failed") {
+      notifyWarning(paymentMessage || "CCAvenue payment was not completed. You can retry from this page.")
+    }
+  }, [paymentMessage, paymentState])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen pt-24 pb-20 md:pl-64">
+        <div className="max-w-4xl mx-auto px-6 text-white/40">Loading order details...</div>
+      </div>
+    )
+  }
+
+  if (!order) {
+    return (
+      <div className="min-h-screen pt-24 pb-20 md:pl-64">
+        <div className="max-w-4xl mx-auto px-6">
+          <p className="text-red-400 mb-4">{error || "Order not found."}</p>
+          <Button onClick={() => navigate("/dashboard/orders")}>Back to Orders</Button>
+        </div>
+      </div>
+    )
   }
 
   return (
     <div className="min-h-screen pt-24 pb-20 md:pl-64">
       <div className="max-w-4xl mx-auto px-6">
-
-        {/* Back */}
         <button
           onClick={() => navigate("/dashboard/orders")}
           className="flex items-center gap-2 text-sm text-white/40 hover:text-white transition-colors mb-6"
@@ -37,12 +191,11 @@ export default function OrderDetailPage() {
           <ArrowLeft size={15} /> Back to Orders
         </button>
 
-        {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-display font-bold text-white mb-2">{order.serviceName}</h1>
             <div className="flex items-center gap-3 flex-wrap">
-              <span className="text-sm font-mono text-white/35">{order.id}</span>
+              <span className="text-sm font-mono text-white/35">{order.orderNumber || order.id}</span>
               <StatusBadge status={order.status} />
               <StatusBadge status={order.paymentStatus} />
             </div>
@@ -54,10 +207,11 @@ export default function OrderDetailPage() {
         </div>
 
         <div className="grid lg:grid-cols-3 gap-6">
-          {/* Left: Timeline + Documents */}
           <div className="lg:col-span-2 space-y-6">
+            {error && (
+              <div className="glass rounded-xl p-4 text-sm text-red-400">{error}</div>
+            )}
 
-            {/* Timeline */}
             <div className="glass rounded-xl p-6">
               <h2 className="font-display font-bold text-white mb-6 flex items-center gap-2">
                 <Calendar size={16} className="text-brand-400" /> Order Progress
@@ -65,8 +219,8 @@ export default function OrderDetailPage() {
               <div className="relative">
                 <div className="absolute left-4 top-4 bottom-4 w-px bg-white/8" />
                 <div className="flex flex-col gap-5">
-                  {order.timeline.map((step, i) => (
-                    <div key={i} className="flex items-start gap-4 relative">
+                  {order.timeline.map((step, index) => (
+                    <div key={index} className="flex items-start gap-4 relative">
                       <div className={cn(
                         "w-8 h-8 rounded-full flex items-center justify-center z-10 shrink-0 transition-all",
                         step.done
@@ -98,7 +252,6 @@ export default function OrderDetailPage() {
               )}
             </div>
 
-            {/* Document Upload */}
             <div className="glass rounded-xl p-6">
               <h2 className="font-display font-bold text-white mb-5 flex items-center gap-2">
                 <Upload size={16} className="text-brand-400" /> Upload Documents
@@ -123,12 +276,12 @@ export default function OrderDetailPage() {
                 </div>
               </label>
 
-              {uploadedFiles.length > 0 && (
+              {order.documents?.length > 0 && (
                 <div className="mt-4 space-y-2">
-                  {uploadedFiles.map((name, i) => (
-                    <div key={i} className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-green-500/8 border border-green-500/20">
+                  {order.documents.map((document, index) => (
+                    <div key={index} className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl bg-green-500/8 border border-green-500/20">
                       <CheckCircle2 size={14} className="text-green-400 shrink-0" />
-                      <span className="text-sm text-white/60 flex-1 truncate">{name}</span>
+                      <span className="text-sm text-white/60 flex-1 truncate">{document.name}</span>
                       <span className="text-xs text-green-400">Uploaded</span>
                     </div>
                   ))}
@@ -137,36 +290,104 @@ export default function OrderDetailPage() {
             </div>
           </div>
 
-          {/* Right: Order info */}
           <div className="space-y-4">
-            {/* Summary */}
             <div className="glass rounded-xl p-5">
               <h3 className="text-sm font-semibold text-white/60 uppercase tracking-wider mb-4">Order Summary</h3>
               <div className="space-y-3">
                 <InfoRow icon={FileText} label="Service" value={order.serviceName} />
                 <InfoRow icon={CreditCard} label="Amount" value={formatCurrency(order.amount)} accent />
                 <InfoRow icon={Calendar} label="Placed On" value={formatDate(order.createdAt)} />
+                {canViewAdminOrderDetails && order.clientName && (
+                  <InfoRow icon={User} label="Client" value={order.clientName} />
+                )}
+                {canViewAdminOrderDetails && order.clientEmail && (
+                  <InfoRow icon={MessageSquare} label="Email" value={order.clientEmail} />
+                )}
                 {order.assignedTo && (
                   <InfoRow icon={User} label="Assigned CA" value={order.assignedTo} />
                 )}
               </div>
             </div>
 
-            {/* Payment */}
-            {order.paymentStatus === "pending" && (
+            {canManageOrder && (
+              <div className="glass rounded-xl p-5">
+                <h3 className="text-sm font-semibold text-white/60 uppercase tracking-wider mb-4">Admin Controls</h3>
+                <div className="space-y-4">
+                  <div className="grid gap-4">
+                    <div>
+                      <label className="text-xs text-white/35 block mb-1.5">Order Status</label>
+                      <select
+                        value={adminForm.status}
+                        onChange={setAdminField("status")}
+                        className="w-full rounded-xl bg-white/5 border border-white/10 text-white px-4 py-2.5 text-sm focus:outline-none focus:border-brand-500/50 transition-all"
+                      >
+                        {["pending", "processing", "completed", "cancelled"].map((status) => (
+                          <option key={status} value={status} className="bg-[#121212]">{status}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="text-xs text-white/35 block mb-1.5">Payment Status</label>
+                      <select
+                        value={adminForm.paymentStatus}
+                        onChange={setAdminField("paymentStatus")}
+                        className="w-full rounded-xl bg-white/5 border border-white/10 text-white px-4 py-2.5 text-sm focus:outline-none focus:border-brand-500/50 transition-all"
+                      >
+                        {["pending", "paid", "failed", "refunded"].map((status) => (
+                          <option key={status} value={status} className="bg-[#121212]">{status}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-xs text-white/35 block mb-1.5">Assigned CA / Team</label>
+                    <input
+                      value={adminForm.assignedTo}
+                      onChange={setAdminField("assignedTo")}
+                      className="w-full rounded-xl bg-white/5 border border-white/10 text-white px-4 py-2.5 text-sm focus:outline-none focus:border-brand-500/50 transition-all"
+                      placeholder="FastSewa CA Team"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs text-white/35 block mb-1.5">Latest Update</label>
+                    <textarea
+                      rows={4}
+                      value={adminForm.notes}
+                      onChange={setAdminField("notes")}
+                      className="w-full rounded-xl bg-white/5 border border-white/10 text-white px-4 py-3 text-sm focus:outline-none focus:border-brand-500/50 transition-all resize-none"
+                      placeholder="Add a client-facing update for this order..."
+                    />
+                  </div>
+
+                  <Button className="w-full" size="sm" loading={savingAdmin} onClick={handleAdminSave}>
+                    Save Admin Changes
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {order.paymentStatus !== "paid" && (
               <div className="glass rounded-xl p-5 border border-yellow-500/20">
-                <p className="text-sm font-medium text-yellow-400 mb-3">⚠️ Payment Pending</p>
-                <p className="text-xs text-white/40 mb-4">Complete payment to start processing your order.</p>
-                <Button className="w-full" size="sm">
-                  Pay {formatCurrency(order.amount)}
+                <p className="text-sm font-medium text-yellow-400 mb-3">
+                  {order.paymentStatus === "failed" ? "Payment Failed" : "Payment Pending"}
+                </p>
+                <p className="text-xs text-white/40 mb-4">
+                  {order.paymentStatus === "failed"
+                    ? "Retry the payment on CCAvenue to resume order processing."
+                    : "Complete payment on CCAvenue to start processing your order."}
+                </p>
+                <Button className="w-full" size="sm" loading={processingPayment} onClick={handlePayment}>
+                  {order.paymentStatus === "failed" ? "Retry on CCAvenue" : `Pay ${formatCurrency(order.pricing?.totalAmount || order.amount)}`}
                 </Button>
               </div>
             )}
 
-            {/* Support */}
             <div className="glass rounded-xl p-5">
               <h3 className="text-sm font-semibold text-white/60 uppercase tracking-wider mb-3">Need Help?</h3>
-              <Button variant="outline" className="w-full gap-2" size="sm">
+              <Button variant="outline" className="w-full gap-2" size="sm" onClick={handleWhatsAppChat}>
                 <MessageSquare size={14} /> Chat on WhatsApp
               </Button>
             </div>

@@ -1,16 +1,48 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { Search, ArrowRight, Clock, FileText, CheckCircle } from "lucide-react"
-import { Button, Badge, Card } from "@/components/ui"
-import { SERVICES, SERVICE_CATEGORIES } from "@/data/mockData"
+import { Button, Badge } from "@/components/ui"
+import { servicesApi } from "@/lib/api"
 import { formatCurrency, cn } from "@/lib/utils"
 
 export default function ServicesPage() {
   const navigate = useNavigate()
+  const [services, setServices] = useState([])
+  const [categories, setCategories] = useState(["All"])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState("")
   const [activeCategory, setActiveCategory] = useState("All")
   const [search, setSearch] = useState("")
 
-  const filtered = SERVICES.filter((s) => {
+  useEffect(() => {
+    let active = true
+
+    async function loadServices() {
+      setLoading(true)
+      try {
+        const data = await servicesApi.list()
+        if (!active) return
+        setServices(data.items)
+        setCategories(data.categories)
+        setError("")
+      } catch (requestError) {
+        if (!active) return
+        setError(requestError.message)
+      } finally {
+        if (active) {
+          setLoading(false)
+        }
+      }
+    }
+
+    loadServices()
+
+    return () => {
+      active = false
+    }
+  }, [])
+
+  const filtered = services.filter((s) => {
     const matchCat = activeCategory === "All" || s.category === activeCategory
     const matchSearch = s.name.toLowerCase().includes(search.toLowerCase()) ||
       s.description.toLowerCase().includes(search.toLowerCase())
@@ -44,7 +76,7 @@ export default function ServicesPage() {
           </div>
 
           <div className="flex gap-2 flex-wrap">
-            {SERVICE_CATEGORIES.map((cat) => (
+            {categories.map((cat) => (
               <button
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
@@ -61,13 +93,25 @@ export default function ServicesPage() {
           </div>
         </div>
 
+        {loading && (
+          <div className="glass rounded-2xl p-8 text-center text-white/40">
+            Loading services...
+          </div>
+        )}
+
+        {!loading && error && (
+          <div className="glass rounded-2xl p-8 text-center">
+            <p className="text-sm text-red-400">{error}</p>
+          </div>
+        )}
+
         {/* Grid */}
-        {filtered.length === 0 ? (
+        {!loading && !error && filtered.length === 0 ? (
           <div className="text-center py-20 text-white/30">
             <FileText size={40} className="mx-auto mb-3 opacity-50" />
             <p>No services found for "{search}"</p>
           </div>
-        ) : (
+        ) : !loading && !error && (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {filtered.map((service) => (
               <ServiceDetailCard key={service.id} service={service} navigate={navigate} />
@@ -81,11 +125,15 @@ export default function ServicesPage() {
 
 function ServiceDetailCard({ service, navigate }) {
   const categoryColors = {
-    GST: "bg-orange-500/10 text-orange-400 border-orange-500/20",
-    ITR: "bg-blue-500/10 text-blue-400 border-blue-500/20",
-    Company: "bg-purple-500/10 text-purple-400 border-purple-500/20",
-    TDS: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
-    MSME: "bg-green-500/10 text-green-400 border-green-500/20",
+    "Accounting & Bookkeeping": "bg-sky-500/10 text-sky-400 border-sky-500/20",
+    "Taxation (Direct Tax)": "bg-blue-500/10 text-blue-400 border-blue-500/20",
+    "Taxation (Indirect Tax - GST)": "bg-orange-500/10 text-orange-400 border-orange-500/20",
+    "Audit & Assurance": "bg-violet-500/10 text-violet-400 border-violet-500/20",
+    "Company Law & ROC Compliance": "bg-purple-500/10 text-purple-400 border-purple-500/20",
+    "Business Registration & Advisory": "bg-green-500/10 text-green-400 border-green-500/20",
+    "Payroll & HR Services": "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
+    "Financial Consultancy & Advisory": "bg-cyan-500/10 text-cyan-400 border-cyan-500/20",
+    "Other Specialized Services": "bg-pink-500/10 text-pink-400 border-pink-500/20",
   }
 
   return (

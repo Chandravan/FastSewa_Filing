@@ -1,22 +1,62 @@
-import { useEffect } from "react"
-import { Link, useNavigate } from "react-router-dom"
+import { useEffect, useState } from "react"
+import { Link, useLocation, useNavigate } from "react-router-dom"
 import {
   LayoutDashboard, FileText, Bell, User, LogOut,
-  TrendingUp, Clock, CheckCircle2, AlertCircle,
-  ArrowRight, Plus, ChevronRight, IndianRupee
+  Clock, CheckCircle2, AlertCircle,
+  Plus, ChevronRight, IndianRupee
 } from "lucide-react"
 import { useAuth } from "@/hooks/useAuth"
-import { Button, Card, StatusBadge, Badge } from "@/components/ui"
-import { MOCK_ORDERS, COMPLIANCE_REMINDERS, STATS } from "@/data/mockData"
+import { Button, StatusBadge } from "@/components/ui"
+import { dashboardApi } from "@/lib/api"
 import { formatCurrency, formatDate, cn } from "@/lib/utils"
 
+const INITIAL_OVERVIEW = {
+  stats: {
+    totalOrders: 0,
+    completedOrders: 0,
+    pendingOrders: 0,
+    processingOrders: 0,
+    totalSpent: 0,
+  },
+  recentOrders: [],
+  reminders: [],
+}
+
 export default function DashboardPage() {
-  const { user, logout, restoreSession } = useAuth()
+  const { user, logout } = useAuth()
   const navigate = useNavigate()
+  const [overview, setOverview] = useState(INITIAL_OVERVIEW)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState("")
 
   useEffect(() => {
-    restoreSession()
-  }, [])
+    let active = true
+
+    async function loadOverview() {
+      setLoading(true)
+      try {
+        const data = await dashboardApi.getOverview()
+        if (!active) return
+        setOverview(data)
+        setError("")
+      } catch (requestError) {
+        if (!active) return
+        setError(requestError.message)
+      } finally {
+        if (active) {
+          setLoading(false)
+        }
+      }
+    }
+
+    if (user) {
+      loadOverview()
+    }
+
+    return () => {
+      active = false
+    }
+  }, [user])
 
   if (!user) {
     return (
@@ -33,26 +73,22 @@ export default function DashboardPage() {
     <div className="min-h-screen pt-20 flex">
       <Sidebar user={user} logout={logout} navigate={navigate} />
 
-      {/* Main content */}
       <main className="flex-1 ml-0 md:ml-64 px-6 py-8 max-w-5xl">
-        {/* Greeting */}
         <div className="mb-8 animate-fade-up">
           <h1 className="text-3xl font-display font-bold text-white">
-            Good morning, {user.name.split(" ")[0]} 👋
+            Good morning, {user.name.split(" ")[0]}
           </h1>
           <p className="text-white/40 mt-1">Here's an overview of your compliance status.</p>
         </div>
 
-        {/* Stats row */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <StatCard icon={FileText} label="Total Orders" value={STATS.totalOrders} color="text-blue-400" bg="bg-blue-500/10" />
-          <StatCard icon={CheckCircle2} label="Completed" value={STATS.completedOrders} color="text-green-400" bg="bg-green-500/10" />
-          <StatCard icon={Clock} label="In Progress" value={STATS.processingOrders} color="text-orange-400" bg="bg-orange-500/10" />
-          <StatCard icon={IndianRupee} label="Total Spent" value={formatCurrency(STATS.totalSpent)} color="text-brand-400" bg="bg-brand-500/10" />
+          <StatCard icon={FileText} label="Total Orders" value={overview.stats.totalOrders} color="text-blue-400" bg="bg-blue-500/10" />
+          <StatCard icon={CheckCircle2} label="Completed" value={overview.stats.completedOrders} color="text-green-400" bg="bg-green-500/10" />
+          <StatCard icon={Clock} label="In Progress" value={overview.stats.processingOrders} color="text-orange-400" bg="bg-orange-500/10" />
+          <StatCard icon={IndianRupee} label="Total Spent" value={formatCurrency(overview.stats.totalSpent)} color="text-brand-400" bg="bg-brand-500/10" />
         </div>
 
         <div className="grid lg:grid-cols-3 gap-6">
-          {/* Recent orders */}
           <div className="lg:col-span-2 space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="font-display font-bold text-white text-lg">Recent Orders</h2>
@@ -61,24 +97,37 @@ export default function DashboardPage() {
               </Link>
             </div>
 
-            {MOCK_ORDERS.map((order, i) => (
-              <OrderCard key={order.id} order={order} delay={i * 80} navigate={navigate} />
+            {loading && (
+              <div className="glass rounded-xl p-5 text-sm text-white/40">Loading dashboard...</div>
+            )}
+
+            {!loading && error && (
+              <div className="glass rounded-xl p-5 text-sm text-red-400">{error}</div>
+            )}
+
+            {!loading && !error && overview.recentOrders.map((order, index) => (
+              <OrderCard key={order.id} order={order} delay={index * 80} navigate={navigate} />
             ))}
+
+            {!loading && !error && overview.recentOrders.length === 0 && (
+              <div className="glass rounded-xl p-5 text-sm text-white/40">
+                No orders yet. Place your first order to start tracking progress here.
+              </div>
+            )}
 
             <Button variant="outline" className="w-full gap-2" onClick={() => navigate("/services")}>
               <Plus size={15} /> Place New Order
             </Button>
           </div>
 
-          {/* Compliance reminders */}
           <div>
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-display font-bold text-white text-lg">Upcoming Deadlines</h2>
               <Bell size={16} className="text-white/30" />
             </div>
             <div className="space-y-3">
-              {COMPLIANCE_REMINDERS.map((r) => (
-                <ReminderCard key={r.id} reminder={r} />
+              {overview.reminders.map((reminder) => (
+                <ReminderCard key={reminder.id} reminder={reminder} />
               ))}
             </div>
           </div>
@@ -89,20 +138,20 @@ export default function DashboardPage() {
 }
 
 function Sidebar({ user, logout, navigate }) {
+  const location = useLocation()
+
   const navItems = [
     { icon: LayoutDashboard, label: "Overview", to: "/dashboard" },
     { icon: FileText, label: "My Orders", to: "/dashboard/orders" },
-    { icon: Bell, label: "Reminders", to: "/dashboard/reminders" },
     { icon: User, label: "Profile", to: "/dashboard/profile" },
   ]
 
   return (
     <aside className="hidden md:flex flex-col fixed left-0 top-20 bottom-0 w-64 glass border-r border-white/8 p-4">
-      {/* User info */}
       <div className="flex items-center gap-3 p-3 mb-6">
         <div className="w-10 h-10 rounded-xl bg-brand-500/20 border border-brand-500/30 flex items-center justify-center">
           <span className="text-brand-400 font-bold text-sm font-mono">
-            {user.name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2)}
+            {user.name.split(" ").map((part) => part[0]).join("").toUpperCase().slice(0, 2)}
           </span>
         </div>
         <div>
@@ -111,10 +160,11 @@ function Sidebar({ user, logout, navigate }) {
         </div>
       </div>
 
-      {/* Nav */}
       <nav className="flex flex-col gap-1 flex-1">
         {navItems.map(({ icon: Icon, label, to }) => (
-          <Link key={to} to={to}
+          <Link
+            key={to}
+            to={to}
             className={cn(
               "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all",
               location.pathname === to
@@ -161,7 +211,7 @@ function OrderCard({ order, delay, navigate }) {
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-sm font-medium text-white truncate">{order.serviceName}</p>
-          <p className="text-xs text-white/35 mt-0.5">{order.id} · {formatDate(order.createdAt)}</p>
+          <p className="text-xs text-white/35 mt-0.5">{order.orderNumber || order.id} | {formatDate(order.createdAt)}</p>
         </div>
         <div className="flex flex-col items-end gap-1.5 shrink-0">
           <StatusBadge status={order.status} />
@@ -169,18 +219,17 @@ function OrderCard({ order, delay, navigate }) {
         </div>
       </div>
 
-      {/* Progress bar */}
       <div className="mt-3">
         <div className="flex gap-1">
-          {order.timeline.map((step, i) => (
+          {order.timeline.map((step, index) => (
             <div
-              key={i}
+              key={index}
               className={cn("flex-1 h-1 rounded-full", step.done ? "bg-brand-500" : "bg-white/10")}
             />
           ))}
         </div>
         <p className="text-xs text-white/25 mt-1.5">
-          {order.timeline.filter(t => t.done).length}/{order.timeline.length} steps done
+          {order.timeline.filter((item) => item.done).length}/{order.timeline.length} steps done
         </p>
       </div>
     </div>

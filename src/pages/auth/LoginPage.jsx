@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom"
 import { Mail, Lock, ArrowRight, Eye, EyeOff } from "lucide-react"
 import { Button, Input } from "@/components/ui"
 import { useAuth } from "@/hooks/useAuth"
+import { notifyError, notifySuccess, notifyWarning } from "@/lib/toast"
 
 export default function LoginPage() {
   const { login, loading } = useAuth()
@@ -10,18 +11,22 @@ export default function LoginPage() {
 
   const [form, setForm] = useState({ email: "", password: "" })
   const [showPass, setShowPass] = useState(false)
-  const [error, setError] = useState("")
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    setError("")
     if (!form.email || !form.password) {
-      setError("Please fill in all fields.")
+      notifyWarning("Please fill in all fields.")
       return
     }
+
     const result = await login(form.email, form.password)
-    if (result.success) navigate("/dashboard")
-    else setError("Invalid credentials. Please try again.")
+    if (result.success) {
+      notifySuccess(`Welcome back${result.user?.name ? `, ${result.user.name.split(" ")[0]}` : ""}.`)
+      navigate("/dashboard")
+      return
+    }
+
+    notifyError(result.message, "Invalid credentials. Please try again.")
   }
 
   return (
@@ -77,12 +82,6 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {error && (
-              <p className="text-sm text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2.5">
-                {error}
-              </p>
-            )}
-
             <Button type="submit" className="w-full gap-2" size="lg" loading={loading}>
               Sign In <ArrowRight size={16} />
             </Button>
@@ -91,7 +90,7 @@ export default function LoginPage() {
           {/* Demo hint */}
           <div className="mt-4 px-3 py-2.5 rounded-lg bg-blue-500/5 border border-blue-500/15">
             <p className="text-xs text-blue-400/80">
-              <strong className="text-blue-400">Demo:</strong> Enter any email + password to login with mock data.
+              <strong className="text-blue-400">Demo:</strong> Use `demo@fastsewa.in` and `password123`.
             </p>
           </div>
         </div>

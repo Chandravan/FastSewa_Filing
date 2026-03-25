@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils"
-import { forwardRef } from "react"
+import { forwardRef, useEffect } from "react"
 
 // ─── Button ─────────────────────────────────────────────────────────────────
 export const Button = forwardRef(({ className, variant = "primary", size = "md", loading, children, ...props }, ref) => {
@@ -143,10 +143,99 @@ export function EmptyState({ icon: Icon, title, description, action }) {
 }
 
 // ─── Status Badge (order specific) ───────────────────────────────────────────
+export function ConfirmDialog({
+  open,
+  title,
+  description,
+  confirmLabel = "Confirm",
+  cancelLabel = "Cancel",
+  onConfirm,
+  onClose,
+  loading = false,
+  tone = "danger",
+}) {
+  useEffect(() => {
+    if (!open) {
+      return undefined
+    }
+
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = "hidden"
+
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape" && !loading) {
+        onClose?.()
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown)
+
+    return () => {
+      document.body.style.overflow = previousOverflow
+      window.removeEventListener("keydown", handleKeyDown)
+    }
+  }, [loading, onClose, open])
+
+  if (!open) {
+    return null
+  }
+
+  const confirmVariant = tone === "danger" ? "danger" : "primary"
+  const badgeClassName = tone === "danger"
+    ? "bg-red-500/12 text-red-300 border border-red-500/20"
+    : "bg-brand-500/12 text-brand-300 border border-brand-500/20"
+
+  return (
+    <div className="fixed inset-0 z-[120] flex items-center justify-center px-4">
+      <button
+        type="button"
+        aria-label="Close confirmation dialog"
+        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+        onClick={() => { if (!loading) onClose?.() }}
+      />
+
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="confirm-dialog-title"
+        className="relative w-full max-w-md rounded-[28px] border border-white/10 bg-[linear-gradient(180deg,rgba(24,24,24,0.98),rgba(10,10,10,0.96))] p-6 shadow-[0_28px_80px_rgba(0,0,0,0.45)]"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="mb-5 flex items-start gap-4">
+          <div className={cn("flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-lg font-bold", badgeClassName)}>
+            !
+          </div>
+          <div className="min-w-0">
+            <p id="confirm-dialog-title" className="text-xl font-display font-bold text-white">
+              {title}
+            </p>
+            {description && (
+              <p className="mt-2 text-sm leading-relaxed text-white/45">
+                {description}
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+          <Button variant="outline" onClick={onClose} disabled={loading}>
+            {cancelLabel}
+          </Button>
+          <Button variant={confirmVariant} loading={loading} onClick={onConfirm}>
+            {confirmLabel}
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export function StatusBadge({ status }) {
   const config = {
     pending:    { label: "Pending",    cls: "status-pending" },
     paid:       { label: "Paid",       cls: "status-paid" },
+    failed:     { label: "Failed",     cls: "status-failed" },
+    refunded:   { label: "Refunded",   cls: "status-refunded" },
     processing: { label: "Processing", cls: "status-processing" },
     completed:  { label: "Completed",  cls: "status-completed" },
     cancelled:  { label: "Cancelled",  cls: "status-cancelled" },
