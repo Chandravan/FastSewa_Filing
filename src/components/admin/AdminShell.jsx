@@ -5,6 +5,7 @@ import {
   LayoutDashboard,
   Layers3,
   LogOut,
+  Mail,
   ShieldCheck,
   User,
   Users2,
@@ -19,6 +20,7 @@ const NAV_ITEMS = [
   { icon: FileText, label: "Order Desk", to: "/admin/orders", permissions: ["orders.view", "orders.manage", "orders.bulk"] },
   { icon: Layers3, label: "Service Studio", to: "/admin/services", permissions: ["services.view", "services.manage", "services.archive", "services.restore", "services.bulk"] },
   { icon: Users2, label: "User Desk", to: "/admin/users", permissions: ["users.view", "users.manage", "users.disable", "users.delete", "users.bulk"] },
+  { icon: Mail, label: "Contact Desk", to: "/admin/inquiries", permissions: ["inquiries.view", "inquiries.manage"] },
   { icon: ClipboardList, label: "Audit Trail", to: "/admin/audit", permissions: ["audit.view"] },
   { icon: User, label: "Profile", to: "/dashboard/profile" },
 ]

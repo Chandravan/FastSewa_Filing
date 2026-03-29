@@ -8,6 +8,16 @@ const LINKS = {
   Legal: ["Privacy Policy", "Terms of Service", "Refund Policy"],
 }
 
+const LINK_ROUTES = {
+  "About Us": "/about",
+  "Our Team": "/team",
+  "Pricing": "/pricing",
+  "Contact": "/contact",
+  "Privacy Policy": "/privacy-policy",
+  "Terms of Service": "/terms-of-service",
+  "Refund Policy": "/refund-policy",
+}
+
 export default function Footer() {
   const supportPhoneLabel = formatWhatsappNumber(SUPPORT_WHATSAPP_NUMBER)
   const supportPhoneHref = SUPPORT_WHATSAPP_NUMBER ? `tel:+${SUPPORT_WHATSAPP_NUMBER}` : null
@@ -47,13 +57,22 @@ export default function Footer() {
             <div key={category}>
               <h4 className="text-sm font-semibold text-white/70 mb-4">{category}</h4>
               <ul className="flex flex-col gap-2.5">
-                {links.map((link) => (
-                  <li key={link}>
-                    <Link to="#" className="text-sm text-white/35 hover:text-white/70 transition-colors">
-                      {link}
-                    </Link>
-                  </li>
-                ))}
+                {links.map((link) => {
+                  const route = LINK_ROUTES[link] || (category === "Services" ? `/services?search=${encodeURIComponent(link)}` : null)
+                  return (
+                    <li key={link}>
+                      {route ? (
+                        <Link to={route} className="text-sm text-white/35 hover:text-white/70 transition-colors">
+                          {link}
+                        </Link>
+                      ) : (
+                        <span className="text-sm text-white/35">
+                          {link}
+                        </span>
+                      )}
+                    </li>
+                  )
+                })}
               </ul>
             </div>
           ))}

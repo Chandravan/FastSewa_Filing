@@ -6,11 +6,15 @@ import Footer from "@/components/layout/Footer"
 // Pages
 import LandingPage from "@/pages/LandingPage"
 import ServicesPage from "@/pages/ServicesPage"
+import AboutPage from "@/pages/AboutPage"
+import PricingPage from "@/pages/PricingPage"
+import ContactPage from "@/pages/ContactPage"
 import ForgotPasswordPage from "@/pages/auth/ForgotPasswordPage"
 import LoginPage from "@/pages/auth/LoginPage"
 import RegisterPage from "@/pages/auth/RegisterPage"
 import ResetPasswordPage from "@/pages/auth/ResetPasswordPage"
 import AdminAuditPage from "@/pages/admin/AdminAuditPage"
+import AdminContactInquiriesPage from "@/pages/admin/AdminContactInquiriesPage"
 import AdminDashboardPage from "@/pages/admin/AdminDashboardPage"
 import AdminOrdersPage from "@/pages/admin/AdminOrdersPage"
 import AdminServicesPage from "@/pages/admin/AdminServicesPage"
@@ -20,6 +24,10 @@ import OrdersPage from "@/pages/client/OrdersPage"
 import OrderDetailPage from "@/pages/client/OrderDetailPage"
 import OrderPlacementPage from "@/pages/client/OrderPlacementPage"
 import ProfilePage from "@/pages/client/ProfilePage"
+import TeamPage from "@/pages/TeamPage"
+import PrivacyPolicyPage from "@/pages/legal/PrivacyPolicyPage"
+import TermsOfServicePage from "@/pages/legal/TermsOfServicePage"
+import RefundPolicyPage from "@/pages/legal/RefundPolicyPage"
 import { getPrimaryAdminRoute, hasAnyPermission } from "@/lib/adminPermissions"
 import { AppToastContainer } from "@/lib/toast"
 
@@ -74,6 +82,13 @@ function AppLayout() {
         {/* Public */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/services" element={<ServicesPage />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/pricing" element={<PricingPage />} />
+        <Route path="/contact" element={<ContactPage />} />
+        <Route path="/team" element={<TeamPage />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+        <Route path="/terms-of-service" element={<TermsOfServicePage />} />
+        <Route path="/refund-policy" element={<RefundPolicyPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
@@ -102,6 +117,9 @@ function AppLayout() {
         } />
         <Route path="/admin/audit" element={
           <ProtectedRoute roles={["admin"]} permissions={["audit.view"]}><AdminAuditPage /></ProtectedRoute>
+        } />
+        <Route path="/admin/inquiries" element={
+          <ProtectedRoute roles={["admin"]} permissions={["inquiries.view", "inquiries.manage"]}><AdminContactInquiriesPage /></ProtectedRoute>
         } />
         <Route path="/dashboard/orders" element={
           <ProtectedRoute><OrdersPage /></ProtectedRoute>

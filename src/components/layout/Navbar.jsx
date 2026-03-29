@@ -16,8 +16,12 @@ export default function Navbar() {
   const isActive = (path) => location.pathname === path
   const primaryDashboardPath = user?.role === "admin" ? getPrimaryAdminRoute(user) : "/dashboard"
   const canAccessAdminOrders = hasAnyPermission(user, ["orders.view", "orders.manage", "orders.bulk"])
+  const canAccessInquiryDesk = hasAnyPermission(user, ["inquiries.view", "inquiries.manage"])
   const ordersPath = user?.role === "admin"
     ? (canAccessAdminOrders ? "/admin/orders" : primaryDashboardPath)
+    : "/dashboard/orders"
+  const notificationPath = user?.role === "admin"
+    ? (canAccessInquiryDesk ? "/admin/inquiries" : ordersPath)
     : "/dashboard/orders"
   const dashboardNavActive = user?.role === "admin"
     ? location.pathname.startsWith("/admin")
@@ -57,6 +61,7 @@ export default function Navbar() {
           <NavLink to="/services" active={isActive("/services")}>Services</NavLink>
           <NavLink to="/pricing" active={isActive("/pricing")}>Pricing</NavLink>
           <NavLink to="/about" active={isActive("/about")}>About</NavLink>
+          <NavLink to="/contact" active={isActive("/contact")}>Contact</NavLink>
           {user && <NavLink to={primaryDashboardPath} active={dashboardNavActive}>{user.role === "admin" ? "Admin Panel" : "Dashboard"}</NavLink>}
         </div>
 
@@ -65,7 +70,12 @@ export default function Navbar() {
           {user ? (
             <>
               {/* Notifications */}
-              <button className="relative w-9 h-9 glass rounded-lg flex items-center justify-center text-white/60 hover:text-white transition-colors">
+              <button
+                onClick={() => navigate(notificationPath)}
+                title={user?.role === "admin" ? "Open Contact Desk" : "Open My Orders"}
+                aria-label={user?.role === "admin" ? "Open contact desk notifications" : "Open order notifications"}
+                className="relative w-9 h-9 glass rounded-lg flex items-center justify-center text-white/60 hover:text-white transition-colors"
+              >
                 <Bell size={16} />
                 <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-brand-500 rounded-full" />
               </button>
@@ -131,6 +141,8 @@ export default function Navbar() {
         <div className="md:hidden glass border-t border-white/8 px-4 py-4 flex flex-col gap-2">
           <MobileLink to="/services" onClick={() => setMobileOpen(false)}>Services</MobileLink>
           <MobileLink to="/pricing" onClick={() => setMobileOpen(false)}>Pricing</MobileLink>
+          <MobileLink to="/about" onClick={() => setMobileOpen(false)}>About</MobileLink>
+          <MobileLink to="/contact" onClick={() => setMobileOpen(false)}>Contact</MobileLink>
           {user ? (
             <>
               <MobileLink to={primaryDashboardPath} onClick={() => setMobileOpen(false)}>

@@ -38,6 +38,14 @@ export const ADMIN_PERMISSION_GROUPS = [
     ],
   },
   {
+    id: "inquiries",
+    label: "Contact Desk",
+    permissions: [
+      { key: "inquiries.view", label: "View inquiries", description: "Inspect contact form submissions." },
+      { key: "inquiries.manage", label: "Manage inquiries", description: "Update inquiry status and add notes." },
+    ],
+  },
+  {
     id: "audit",
     label: "Audit & Trace",
     permissions: [
@@ -69,7 +77,7 @@ export const ADMIN_PERMISSION_TEMPLATES = [
     key: "support_manager",
     label: "Support Manager",
     description: "Handles accounts, order support, and traceability.",
-    permissions: ["dashboard.view", "orders.view", "orders.manage", "users.view", "users.manage", "users.disable", "audit.view"],
+    permissions: ["dashboard.view", "orders.view", "orders.manage", "users.view", "users.manage", "users.disable", "inquiries.view", "inquiries.manage", "audit.view"],
   },
 ]
 
@@ -103,6 +111,7 @@ export function getPrimaryAdminRoute(user) {
   if (hasAnyPermission(user, ["orders.view", "orders.manage", "orders.bulk"])) return "/admin/orders"
   if (hasAnyPermission(user, ["services.view", "services.manage", "services.archive", "services.restore", "services.bulk"])) return "/admin/services"
   if (hasAnyPermission(user, ["users.view", "users.manage", "users.disable", "users.delete", "users.bulk"])) return "/admin/users"
+  if (hasAnyPermission(user, ["inquiries.view", "inquiries.manage"])) return "/admin/inquiries"
   if (hasPermission(user, "audit.view")) return "/admin/audit"
   return "/dashboard/profile"
 }

@@ -110,8 +110,8 @@ export default function RegisterPage() {
           </form>
           <p className="text-xs text-white/25 text-center mt-4 leading-relaxed">
             By creating an account, you agree to our{" "}
-            <Link to="/terms" className="text-white/40 hover:text-white/70">Terms of Service</Link> and{" "}
-            <Link to="/privacy" className="text-white/40 hover:text-white/70">Privacy Policy</Link>.
+            <Link to="/terms-of-service" className="text-white/40 hover:text-white/70">Terms of Service</Link> and{" "}
+            <Link to="/privacy-policy" className="text-white/40 hover:text-white/70">Privacy Policy</Link>.
           </p>
         </div>
 

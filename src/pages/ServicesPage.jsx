@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useSearchParams } from "react-router-dom"
 import { Search, ArrowRight, Clock, FileText, CheckCircle } from "lucide-react"
 import { Button, Badge } from "@/components/ui"
 import { servicesApi } from "@/lib/api"
@@ -7,12 +7,14 @@ import { formatCurrency, cn } from "@/lib/utils"
 
 export default function ServicesPage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const searchFromUrl = (searchParams.get("search") || "").trim()
   const [services, setServices] = useState([])
   const [categories, setCategories] = useState(["All"])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [activeCategory, setActiveCategory] = useState("All")
-  const [search, setSearch] = useState("")
+  const [search, setSearch] = useState(searchFromUrl)
 
   useEffect(() => {
     let active = true
@@ -41,6 +43,11 @@ export default function ServicesPage() {
       active = false
     }
   }, [])
+
+  useEffect(() => {
+    setSearch(searchFromUrl)
+    setActiveCategory("All")
+  }, [searchFromUrl])
 
   const filtered = services.filter((s) => {
     const matchCat = activeCategory === "All" || s.category === activeCategory

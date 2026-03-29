@@ -5,7 +5,7 @@ import { Badge, Button } from "@/components/ui"
 import { auditApi } from "@/lib/api"
 import { cn, formatDate } from "@/lib/utils"
 
-const ENTITY_FILTERS = ["All", "order", "service", "user", "system"]
+const ENTITY_FILTERS = ["All", "order", "service", "user", "contact_inquiry", "system"]
 
 export default function AdminAuditPage() {
   const [audit, setAudit] = useState({
@@ -59,6 +59,7 @@ export default function AdminAuditPage() {
       order: map.get("order") || 0,
       service: map.get("service") || 0,
       user: map.get("user") || 0,
+      contactInquiry: map.get("contact_inquiry") || 0,
       system: map.get("system") || 0,
     }
   }, [audit.summary.entityCounts])
@@ -79,7 +80,7 @@ export default function AdminAuditPage() {
         <AuditStat label="Visible Events" value={audit.summary.total} tone="bg-blue-500/10 text-blue-300" icon={History} />
         <AuditStat label="Events Today" value={audit.summary.today} tone="bg-green-500/10 text-green-300" icon={Activity} />
         <AuditStat label="Order Events" value={entitySummary.order} tone="bg-orange-500/10 text-orange-300" icon={ClipboardList} />
-        <AuditStat label="User Events" value={entitySummary.user} tone="bg-brand-500/10 text-brand-300" icon={ShieldCheck} />
+        <AuditStat label="Contact Events" value={entitySummary.contactInquiry} tone="bg-brand-500/10 text-brand-300" icon={ShieldCheck} />
       </div>
 
       <section className="glass rounded-[26px] p-6">

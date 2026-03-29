@@ -164,6 +164,18 @@ export const servicesApi = {
   },
 }
 
+export const contactApi = {
+  submit(payload) {
+    return apiRequest("/contact", { method: "POST", body: payload })
+  },
+  listInquiries(query) {
+    return apiRequest("/contact/admin/inquiries", { query, auth: true })
+  },
+  updateInquiry(inquiryId, payload) {
+    return apiRequest(`/contact/admin/inquiries/${inquiryId}`, { method: "PUT", body: payload, auth: true })
+  },
+}
+
 export const dashboardApi = {
   getOverview() {
     return apiRequest("/dashboard/overview", { auth: true })
