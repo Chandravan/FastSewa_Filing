@@ -162,7 +162,7 @@ function OrderRow({ order, delay, navigate, isAdmin }) {
               {order.assignedTo && (
                 <>
                   <span className="text-white/20">|</span>
-                  <span className="text-xs text-white/35">CA: {order.assignedTo}</span>
+                  <span className="text-xs text-white/35">Team: {order.assignedTo}</span>
                 </>
               )}
             </div>

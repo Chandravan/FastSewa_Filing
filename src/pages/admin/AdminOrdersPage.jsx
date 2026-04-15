@@ -2,10 +2,11 @@ import { useEffect, useMemo, useState } from "react"
 import { ArrowRight, CheckSquare, ClipboardList, CreditCard, Search, Sparkles } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import AdminShell from "@/components/admin/AdminShell"
-import { Badge, Button, Input, StatusBadge } from "@/components/ui"
+import { Badge, Button, StatusBadge } from "@/components/ui"
 import { useAuth } from "@/hooks/useAuth"
 import { hasPermission } from "@/lib/adminPermissions"
 import { ordersApi } from "@/lib/api"
+import { getOrderAssignmentOptions } from "@/lib/orderAssignments"
 import { notifyError, notifySuccess, notifyWarning } from "@/lib/toast"
 import { cn, formatCurrency, formatDate } from "@/lib/utils"
 
@@ -111,6 +112,20 @@ export default function AdminOrdersPage() {
     pending: orders.filter((order) => order.status === "pending").length,
     paymentIssues: orders.filter((order) => order.paymentStatus === "failed").length,
   }), [orders])
+  const assignmentOptions = useMemo(
+    () => getOrderAssignmentOptions(form.assignedTo, {
+      includeBlank: true,
+      blankLabel: "Not assigned yet",
+    }),
+    [form.assignedTo]
+  )
+  const bulkAssignmentOptions = useMemo(
+    () => getOrderAssignmentOptions("", {
+      includeBlank: true,
+      blankLabel: "Leave team unchanged",
+    }),
+    []
+  )
 
   const visibleSelectedCount = filteredOrders.filter((order) => selectedIds.includes(order.id)).length
 
@@ -316,7 +331,12 @@ export default function AdminOrdersPage() {
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-3">
-                  <Input label="Bulk assignee" value={bulkForm.assignedTo} onChange={setBulkField("assignedTo")} placeholder="FastSewa CA Team" />
+                  <SelectField
+                    label="Bulk team assignment"
+                    value={bulkForm.assignedTo}
+                    onChange={setBulkField("assignedTo")}
+                    options={bulkAssignmentOptions}
+                  />
                   <div className="sm:self-end">
                     <Button size="sm" variant="outline" loading={bulkSaving} disabled={selectedIds.length === 0} onClick={handleBulkUpdate}>
                       Apply Bulk Update
@@ -416,12 +436,12 @@ export default function AdminOrdersPage() {
                 <SelectField disabled={!canManageOrders} label="Payment Status" value={form.paymentStatus} onChange={setField("paymentStatus")} options={PAYMENT_FILTERS.filter((item) => item !== "All")} />
               </div>
 
-              <Input
+              <SelectField
                 disabled={!canManageOrders}
-                label="Assigned CA / Team"
+                label="Assigned Team"
                 value={form.assignedTo}
                 onChange={setField("assignedTo")}
-                placeholder="FastSewa CA Team"
+                options={assignmentOptions}
               />
 
               <div>
@@ -489,6 +509,12 @@ function DeskStat({ label, value, tone, icon: Icon }) {
 }
 
 function SelectField({ label, value, onChange, options, disabled }) {
+  const normalizedOptions = options.map((option) => (
+    typeof option === "string"
+      ? { value: option, label: option }
+      : option
+  ))
+
   return (
     <div>
       <label className="text-sm font-medium text-white/70 block mb-1.5">{label}</label>
@@ -498,9 +524,9 @@ function SelectField({ label, value, onChange, options, disabled }) {
         onChange={onChange}
         className="w-full rounded-xl bg-white/5 border border-white/10 text-white px-4 py-2.5 text-sm focus:outline-none focus:border-brand-500/50 transition-all disabled:opacity-60"
       >
-        {options.map((option) => (
-          <option key={option} value={option} className="bg-[#121212]">
-            {option}
+        {normalizedOptions.map((option, index) => (
+          <option key={`${option.value || "blank"}-${index}`} value={option.value} className="bg-[#121212]">
+            {option.label}
           </option>
         ))}
       </select>

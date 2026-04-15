@@ -325,7 +325,7 @@ export const MOCK_ORDERS = [
     amount: 3000,
     createdAt: "2024-02-10T10:30:00Z",
     updatedAt: "2024-02-15T14:00:00Z",
-    assignedTo: "Priya Sharma",
+    assignedTo: "GST Team",
     notes: "Application completed and GSTIN shared with the client.",
     timeline: [
       { status: "Order placed", date: "2024-02-10", done: true },
@@ -345,7 +345,7 @@ export const MOCK_ORDERS = [
     amount: 1000,
     createdAt: "2024-03-01T09:00:00Z",
     updatedAt: "2024-03-03T11:00:00Z",
-    assignedTo: "Rahul Verma",
+    assignedTo: "ITR Team",
     notes: "Documents received. Return preparation is in progress.",
     timeline: [
       { status: "Order placed", date: "2024-03-01", done: true },

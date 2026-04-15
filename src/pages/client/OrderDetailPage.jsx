@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useParams, useNavigate, useSearchParams } from "react-router-dom"
 import {
   ArrowLeft, CheckCircle2, Circle, Upload, FileText,
@@ -8,6 +8,7 @@ import { Button, StatusBadge } from "@/components/ui"
 import { useAuth } from "@/hooks/useAuth"
 import { ordersApi, submitHostedPayment } from "@/lib/api"
 import { hasAnyPermission, hasPermission } from "@/lib/adminPermissions"
+import { getOrderAssignmentOptions } from "@/lib/orderAssignments"
 import { buildWhatsAppUrl } from "@/lib/support"
 import { notifyError, notifyInfo, notifySuccess, notifyWarning } from "@/lib/toast"
 import { formatCurrency, formatDate, cn } from "@/lib/utils"
@@ -31,6 +32,13 @@ export default function OrderDetailPage() {
   })
   const canViewAdminOrderDetails = hasAnyPermission(user, ["orders.view", "orders.manage", "orders.bulk"])
   const canManageOrder = hasPermission(user, "orders.manage")
+  const assignmentOptions = useMemo(
+    () => getOrderAssignmentOptions(adminForm.assignedTo, {
+      includeBlank: true,
+      blankLabel: "Not assigned yet",
+    }),
+    [adminForm.assignedTo]
+  )
 
   useEffect(() => {
     let active = true
@@ -304,7 +312,7 @@ export default function OrderDetailPage() {
                   <InfoRow icon={MessageSquare} label="Email" value={order.clientEmail} />
                 )}
                 {order.assignedTo && (
-                  <InfoRow icon={User} label="Assigned CA" value={order.assignedTo} />
+                  <InfoRow icon={User} label="Assigned Team" value={order.assignedTo} />
                 )}
               </div>
             </div>
@@ -342,13 +350,18 @@ export default function OrderDetailPage() {
                   </div>
 
                   <div>
-                    <label className="text-xs text-white/35 block mb-1.5">Assigned CA / Team</label>
-                    <input
+                    <label className="text-xs text-white/35 block mb-1.5">Assigned Team</label>
+                    <select
                       value={adminForm.assignedTo}
                       onChange={setAdminField("assignedTo")}
                       className="w-full rounded-xl bg-white/5 border border-white/10 text-white px-4 py-2.5 text-sm focus:outline-none focus:border-brand-500/50 transition-all"
-                      placeholder="FastSewa CA Team"
-                    />
+                    >
+                      {assignmentOptions.map((option, index) => (
+                        <option key={`${option.value || "blank"}-${index}`} value={option.value} className="bg-[#121212]">
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
                   <div>

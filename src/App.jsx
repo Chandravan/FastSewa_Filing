@@ -1,3 +1,4 @@
+import { useEffect } from "react"
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom"
 import { AuthProvider, useAuth } from "@/hooks/useAuth"
 import Navbar from "@/components/layout/Navbar"
@@ -71,12 +72,23 @@ function DashboardHomeRoute() {
 // Pages that don't show footer
 const NO_FOOTER_PATHS = ["/dashboard", "/admin", "/login", "/register", "/forgot-password", "/reset-password"]
 
+function ScrollToTop() {
+  const location = useLocation()
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" })
+  }, [location.pathname, location.search])
+
+  return null
+}
+
 function AppLayout() {
   const location = useLocation()
   const showFooter = !NO_FOOTER_PATHS.some((p) => location.pathname.startsWith(p))
 
   return (
     <>
+      <ScrollToTop />
       <Navbar />
       <Routes>
         {/* Public */}
