@@ -55,9 +55,31 @@ export function Badge({ children, variant = "default", className }) {
 }
 
 // ─── Card ─────────────────────────────────────────────────────────────────────
-export function Card({ children, className, hover = false }) {
+export function Card({ children, className, hover = false, onClick, onKeyDown, tabIndex, role, ...props }) {
+  const interactive = typeof onClick === "function"
+
+  function handleKeyDown(event) {
+    onKeyDown?.(event)
+
+    if (event.defaultPrevented || !interactive) {
+      return
+    }
+
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault()
+      onClick(event)
+    }
+  }
+
   return (
-    <div className={cn("glass rounded-xl p-5", hover && "glass-hover cursor-pointer", className)}>
+    <div
+      className={cn("glass rounded-xl p-5", hover && "glass-hover", interactive && "cursor-pointer", className)}
+      onClick={onClick}
+      onKeyDown={interactive ? handleKeyDown : onKeyDown}
+      role={interactive ? role || "button" : role}
+      tabIndex={interactive ? tabIndex ?? 0 : tabIndex}
+      {...props}
+    >
       {children}
     </div>
   )

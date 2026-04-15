@@ -1,5 +1,5 @@
 const DEFAULT_SUPPORT_EMAIL = "support@fastsewa.in"
-const DEFAULT_SUPPORT_WHATSAPP_NUMBER = "919876543210"
+const DEFAULT_SUPPORT_WHATSAPP_NUMBER = "918275723755"
 
 export const LEGAL_ENTITY_NAME = "FastSewa Filings"
 export const HEAD_OFFICE_ADDRESS = "B-HUB, 5th Floor, Block-A, Maurya Lok Complex, New Dak Bunglow Road, Fraser Road Area, Patna, Bihar 800001"
