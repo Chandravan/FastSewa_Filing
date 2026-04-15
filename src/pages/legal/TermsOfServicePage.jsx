@@ -3,23 +3,23 @@ import LegalPageLayout, { LegalSection } from "@/pages/legal/LegalPageLayout";
 export default function TermsOfServicePage() {
   return (
     <LegalPageLayout
-      label="Terms of Service"
-      title="Terms for Using FastSewa"
-      summary="These terms govern your use of FastSewa services, website, and account. By using the platform, you agree to follow the conditions below."
+      label="Terms & Conditions"
+      title="Terms & Conditions for FastSewa Filings"
+      summary="These Terms & Conditions govern your use of FastSewa Filings services, website, and account. By using the platform, you agree to follow the conditions below."
       lastUpdated="March 29, 2026"
     >
       <LegalSection title="1. Acceptance of Terms">
         <p>
-          By accessing or using FastSewa, you agree to these Terms of Service and applicable laws. If you do not
-          agree, you should not use the platform.
+          By accessing or using FastSewa Filings, you agree to these Terms & Conditions and applicable laws. If you do
+          not agree, you should not use the platform.
         </p>
       </LegalSection>
 
       <LegalSection title="2. Scope of Services">
         <p>
-          FastSewa provides compliance and documentation assistance, including filing workflows and operational support.
-          Final approvals, processing timelines, and responses from government or external authorities are outside
-          FastSewa's direct control.
+          FastSewa Filings provides compliance and documentation assistance, including filing workflows and operational
+          support. Final approvals, processing timelines, and responses from government or external authorities are
+          outside FastSewa Filings' direct control.
         </p>
       </LegalSection>
 
@@ -40,15 +40,15 @@ export default function TermsOfServicePage() {
 
       <LegalSection title="5. Intellectual Property">
         <p>
-          Platform content, branding, UI elements, and technology are owned by FastSewa or licensed to FastSewa.
-          Unauthorized copying, resale, or reverse engineering is prohibited.
+          Platform content, branding, UI elements, and technology are owned by FastSewa Filings or licensed to
+          FastSewa Filings. Unauthorized copying, resale, or reverse engineering is prohibited.
         </p>
       </LegalSection>
 
       <LegalSection title="6. Service Limitations">
         <p>
-          FastSewa does not guarantee uninterrupted availability, authority turnaround times, or outcomes dependent on
-          external departments or user-provided information quality.
+          FastSewa Filings does not guarantee uninterrupted availability, authority turnaround times, or outcomes
+          dependent on external departments or user-provided information quality.
         </p>
       </LegalSection>
 

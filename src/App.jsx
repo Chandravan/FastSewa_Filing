@@ -85,10 +85,13 @@ function AppLayout() {
         <Route path="/about" element={<AboutPage />} />
         <Route path="/pricing" element={<PricingPage />} />
         <Route path="/contact" element={<ContactPage />} />
+        <Route path="/contact-us" element={<ContactPage />} />
         <Route path="/team" element={<TeamPage />} />
         <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
         <Route path="/terms-of-service" element={<TermsOfServicePage />} />
+        <Route path="/terms-and-conditions" element={<TermsOfServicePage />} />
         <Route path="/refund-policy" element={<RefundPolicyPage />} />
+        <Route path="/refund-cancellation-policy" element={<RefundPolicyPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />

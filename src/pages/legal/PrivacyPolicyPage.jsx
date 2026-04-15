@@ -4,8 +4,8 @@ export default function PrivacyPolicyPage() {
   return (
     <LegalPageLayout
       label="Privacy Policy"
-      title="Your Data, Handled Responsibly"
-      summary="This policy explains what data FastSewa collects, why we collect it, and how we protect it while delivering compliance and filing services."
+      title="Privacy Policy for FastSewa Filings"
+      summary="This policy explains what data FastSewa Filings collects, why we collect it, and how we protect it while delivering compliance and filing services."
       lastUpdated="March 29, 2026"
     >
       <LegalSection title="1. Information We Collect">
@@ -35,7 +35,7 @@ export default function PrivacyPolicyPage() {
         </p>
         <p>
           We may also disclose data when required by law, legal process, or to protect the rights and security of
-          FastSewa and its users.
+          FastSewa Filings and its users.
         </p>
       </LegalSection>
 

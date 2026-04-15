@@ -1,6 +1,11 @@
 const DEFAULT_SUPPORT_EMAIL = "support@fastsewa.in"
 const DEFAULT_SUPPORT_WHATSAPP_NUMBER = "919876543210"
 
+export const LEGAL_ENTITY_NAME = "FastSewa Filings"
+export const HEAD_OFFICE_ADDRESS = "B-HUB, 5th Floor, Block-A, Maurya Lok Complex, New Dak Bunglow Road, Fraser Road Area, Patna, Bihar 800001"
+export const BRANCH_OFFICE_ADDRESS = "More Complex, NDA Road, Uttam Nagar, Shivane, Pune, Maharashtra 411023"
+export const BUSINESS_HOURS = "09:00 AM - 09:00 PM"
+
 function normalizeWhatsappNumber(value) {
   return String(value || "")
     .replace(/[^\d]/g, "")

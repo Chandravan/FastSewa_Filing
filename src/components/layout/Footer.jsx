@@ -1,24 +1,31 @@
 import { Link } from "react-router-dom"
 import { Mail, Phone, MapPin } from "lucide-react"
-import { formatWhatsappNumber, SUPPORT_EMAIL, SUPPORT_WHATSAPP_NUMBER } from "@/lib/support"
+import {
+  BRANCH_OFFICE_ADDRESS,
+  HEAD_OFFICE_ADDRESS,
+  formatWhatsappNumber,
+  SUPPORT_EMAIL,
+  SUPPORT_WHATSAPP_NUMBER,
+} from "@/lib/support"
 
 const LINKS = {
   Services: ["GST Registration", "GST Return Filing", "ITR Filing", "Company Registration", "ROC Filing", "TDS Return"],
-  Company: ["About Us", "Our Team", "Pricing", "Contact"],
-  Legal: ["Privacy Policy", "Terms of Service", "Refund Policy"],
+  Company: ["About Us", "Our Team", "Pricing", "Contact Us"],
+  Legal: ["Privacy Policy", "Terms & Conditions", "Refund & Cancellation"],
 }
 
 const LINK_ROUTES = {
   "About Us": "/about",
   "Our Team": "/team",
   "Pricing": "/pricing",
-  "Contact": "/contact",
+  "Contact Us": "/contact-us",
   "Privacy Policy": "/privacy-policy",
-  "Terms of Service": "/terms-of-service",
-  "Refund Policy": "/refund-policy",
+  "Terms & Conditions": "/terms-and-conditions",
+  "Refund & Cancellation": "/refund-cancellation-policy",
 }
 
 export default function Footer() {
+  const currentYear = new Date().getFullYear()
   const supportPhoneLabel = formatWhatsappNumber(SUPPORT_WHATSAPP_NUMBER)
   const supportPhoneHref = SUPPORT_WHATSAPP_NUMBER ? `tel:+${SUPPORT_WHATSAPP_NUMBER}` : null
 
@@ -47,9 +54,13 @@ export default function Footer() {
                   <Phone size={14} /> {supportPhoneLabel}
                 </a>
               )}
-              <span className="flex items-start gap-2.5 text-sm text-white/40">
-                <MapPin size={14} className="mt-0.5 shrink-0" /> Mumbai, Maharashtra, India
-              </span>
+              <div className="space-y-1.5 text-sm text-white/40">
+                <span className="flex items-start gap-2.5">
+                  <MapPin size={14} className="mt-0.5 shrink-0" />
+                  <span>Head Office: {HEAD_OFFICE_ADDRESS}</span>
+                </span>
+                <p className="pl-6 text-white/30">Branch Office: {BRANCH_OFFICE_ADDRESS}</p>
+              </div>
             </div>
           </div>
 
@@ -79,8 +90,8 @@ export default function Footer() {
         </div>
 
         <div className="mt-12 pt-8 border-t border-white/8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-white/25">Copyright 2024 FastSewa Filings. All rights reserved.</p>
-          <p className="text-xs text-white/20">GSTIN: 27XXXXXXX1234Z5 | CIN: UXXXXXX2024PLCXXXXXX</p>
+          <p className="text-xs text-white/25">Copyright {currentYear} FastSewa Filings. All rights reserved.</p>
+          <p className="text-xs text-white/20">Patna Head Office | Pune Branch Office</p>
         </div>
       </div>
     </footer>
