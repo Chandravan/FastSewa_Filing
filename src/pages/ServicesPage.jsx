@@ -69,9 +69,9 @@ export default function ServicesPage() {
           </p>
         </div>
 
-        {/* Search + Filter */}
-        <div className="flex flex-col sm:flex-row gap-4 mb-8">
-          <div className="relative flex-1 max-w-md">
+        {/* Search */}
+        <div className="flex justify-center mb-4">
+          <div className="relative w-full sm:max-w-md">
             <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/30" />
             <input
               type="text"
@@ -81,23 +81,24 @@ export default function ServicesPage() {
               className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/25 text-sm focus:outline-none focus:border-brand-500/50 transition-all"
             />
           </div>
+        </div>
 
-          <div className="flex gap-2 flex-wrap">
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setActiveCategory(cat)}
-                className={cn(
-                  "px-4 py-2 rounded-xl text-sm font-medium transition-all",
-                  activeCategory === cat
-                    ? "bg-brand-500 text-white"
-                    : "glass text-white/50 hover:text-white"
-                )}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
+        {/* Category Filter */}
+        <div className="flex gap-2 flex-wrap mb-8">
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setActiveCategory(cat)}
+              className={cn(
+                "px-4 py-2 rounded-xl text-sm font-medium transition-all",
+                activeCategory === cat
+                  ? "bg-brand-500 text-white"
+                  : "glass text-white/50 hover:text-white"
+              )}
+            >
+              {cat}
+            </button>
+          ))}
         </div>
 
         {loading && (
