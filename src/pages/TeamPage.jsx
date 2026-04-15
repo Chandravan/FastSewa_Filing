@@ -230,43 +230,43 @@ function DeveloperCard({ member }) {
   );
 }
 
-function StatCard({ label, value }) {
-  return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
-      <p className="text-xs uppercase tracking-[0.22em] text-white/35">
-        {label}
-      </p>
-      <p className="mt-3 text-3xl font-display font-bold text-white">{value}</p>
-    </div>
-  );
-}
-
 export default function TeamPage() {
   return (
     <div className="min-h-screen pt-24">
       <section className="px-6 py-16">
-        <div className="mx-auto max-w-6xl rounded-[32px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] p-8 md:p-10">
-          <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-end">
-            <div>
-              <Badge
-                variant="brand"
-                className="px-3 py-1.5 text-[11px] uppercase tracking-[0.22em]"
-              >
-                Our Team
-              </Badge>
-              <h1 className="mt-5 text-4xl font-display font-bold text-white md:text-6xl">
-                Built by a focused team.
-              </h1>
-              <p className="mt-4 max-w-2xl text-base leading-relaxed text-white/50 md:text-lg">
-                FastSewa is shaped by a small leadership group and a lean
-                engineering team. This page keeps image slots ready, so photos
-                can be added later without changing the layout.
+        <div className="mx-auto max-w-5xl rounded-[30px] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.05),rgba(255,255,255,0.02))] p-8 text-center md:p-10">
+          <Badge
+            variant="brand"
+            className="px-3 py-1.5 text-[11px] uppercase tracking-[0.22em]"
+          >
+            Our Team
+          </Badge>
+          <h1 className="mt-5 text-4xl font-display font-bold text-white md:text-5xl">
+            Meet the people behind FastSewa.
+          </h1>
+          <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-white/50 md:text-lg">
+            We are a focused team working across leadership and engineering to
+            keep compliance services simple, fast, and reliable.
+          </p>
+
+          <div className="mx-auto mt-8 grid max-w-md grid-cols-3 gap-3">
+            <div className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-3">
+              <p className="text-xl font-display font-bold text-white">3</p>
+              <p className="mt-1 text-[11px] uppercase tracking-[0.16em] text-white/40">
+                Leaders
               </p>
             </div>
-
-            <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-1">
-              <StatCard label="Leadership" value="3" />
-              <StatCard label="Developers" value="2" />
+            <div className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-3">
+              <p className="text-xl font-display font-bold text-white">2</p>
+              <p className="mt-1 text-[11px] uppercase tracking-[0.16em] text-white/40">
+                Developers
+              </p>
+            </div>
+            <div className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-3">
+              <p className="text-xl font-display font-bold text-white">5</p>
+              <p className="mt-1 text-[11px] uppercase tracking-[0.16em] text-white/40">
+                Total Team
+              </p>
             </div>
           </div>
         </div>
