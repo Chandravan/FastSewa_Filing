@@ -1,9 +1,9 @@
 const DEFAULT_SUPPORT_EMAIL = "support@fastsewa.in"
 const DEFAULT_SUPPORT_WHATSAPP_NUMBER = "918275723755"
 
-export const LEGAL_ENTITY_NAME = "FastSewa Filings"
-export const HEAD_OFFICE_ADDRESS = "B-HUB, 5th Floor, Block-A, Maurya Lok Complex, New Dak Bunglow Road, Fraser Road Area, Patna, Bihar 800001"
-export const BRANCH_OFFICE_ADDRESS = "More Complex, NDA Road, Uttam Nagar, Shivane, Pune, Maharashtra 411023"
+export const BRAND_NAME = "FastSewa Filings"
+export const LEGAL_ENTITY_NAME = "JhaJi Fastsewa E Facilities Pvt Ltd"
+export const HEAD_OFFICE_ADDRESS = "At - Bairiya, Behind Bharat Gas Godam, P.O. - Bairiya, P.S. - Gopalpur, Block - Sampat Chak, District - Patna, State - Bihar - 800007"
 export const BUSINESS_HOURS = "09:00 AM - 09:00 PM"
 
 function normalizeWhatsappNumber(value) {
@@ -32,7 +32,7 @@ export function formatWhatsappNumber(number = SUPPORT_WHATSAPP_NUMBER) {
 export function buildWhatsAppUrl({ orderNumber = "", serviceName = "", clientName = "" } = {}) {
   const number = normalizeWhatsappNumber(SUPPORT_WHATSAPP_NUMBER)
   const messageLines = [
-    "Hi FastSewa team, I need help with my order.",
+    `Hi ${BRAND_NAME} team, I need help with my order.`,
     orderNumber ? `Order: ${orderNumber}` : "",
     serviceName ? `Service: ${serviceName}` : "",
     clientName ? `Client: ${clientName}` : "",

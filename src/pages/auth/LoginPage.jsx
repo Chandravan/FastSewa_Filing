@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom"
 import { Mail, Lock, ArrowRight, Eye, EyeOff } from "lucide-react"
 import { Button, Input } from "@/components/ui"
 import { useAuth } from "@/hooks/useAuth"
+import { BRAND_NAME } from "@/lib/support"
 import { notifyError, notifySuccess, notifyWarning } from "@/lib/toast"
 
 export default function LoginPage() {
@@ -40,10 +41,10 @@ export default function LoginPage() {
             <div className="w-8 h-8 rounded-lg bg-brand-500 flex items-center justify-center group-hover:scale-105 transition-transform">
               <span className="text-white font-display font-bold text-sm">F</span>
             </div>
-            <span className="font-display font-bold text-white text-lg">Fast<span className="text-gradient">Sewa</span></span>
+            <span className="font-display font-bold text-white text-lg">{BRAND_NAME}</span>
           </Link>
           <h1 className="text-3xl font-display font-bold text-white mb-2">Welcome back</h1>
-          <p className="text-white/45">Sign in to your FastSewa account</p>
+          <p className="text-white/45">Sign in to your {BRAND_NAME} account</p>
         </div>
 
         {/* Card */}

@@ -1,8 +1,9 @@
 import { Link } from "react-router-dom"
 import { Mail, Phone, MapPin } from "lucide-react"
 import {
-  BRANCH_OFFICE_ADDRESS,
+  BRAND_NAME,
   HEAD_OFFICE_ADDRESS,
+  LEGAL_ENTITY_NAME,
   formatWhatsappNumber,
   SUPPORT_EMAIL,
   SUPPORT_WHATSAPP_NUMBER,
@@ -39,7 +40,7 @@ export default function Footer() {
                 <span className="text-white font-display font-bold text-sm">F</span>
               </div>
               <span className="font-display font-bold text-white text-lg">
-                Fast<span className="text-gradient">Sewa</span> Filings
+                {BRAND_NAME}
               </span>
             </div>
             <p className="text-sm text-white/40 leading-relaxed mb-6 max-w-xs">
@@ -59,7 +60,6 @@ export default function Footer() {
                   <MapPin size={14} className="mt-0.5 shrink-0" />
                   <span>Head Office: {HEAD_OFFICE_ADDRESS}</span>
                 </span>
-                <p className="pl-6 text-white/30">Branch Office: {BRANCH_OFFICE_ADDRESS}</p>
               </div>
             </div>
           </div>
@@ -90,8 +90,8 @@ export default function Footer() {
         </div>
 
         <div className="mt-12 pt-8 border-t border-white/8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-white/25">Copyright {currentYear} FastSewa Filings. All rights reserved.</p>
-          <p className="text-xs text-white/20">Patna Head Office | Pune Branch Office</p>
+          <p className="text-xs text-white/25">{BRAND_NAME} is operated by {LEGAL_ENTITY_NAME}.</p>
+          <p className="text-xs text-white/20">Head Office | Patna, Bihar 800007</p>
         </div>
       </div>
     </footer>

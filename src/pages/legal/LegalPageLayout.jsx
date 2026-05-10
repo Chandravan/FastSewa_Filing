@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui";
 import {
-  BRANCH_OFFICE_ADDRESS,
+  BRAND_NAME,
   HEAD_OFFICE_ADDRESS,
   LEGAL_ENTITY_NAME,
   SUPPORT_EMAIL,
@@ -43,8 +43,7 @@ export default function LegalPageLayout({
             {summary}
           </p>
           <p className="mt-4 max-w-3xl text-sm leading-relaxed text-white/40 md:text-base">
-            These policies apply to {LEGAL_ENTITY_NAME}. Head Office: {HEAD_OFFICE_ADDRESS}. Branch Office:{" "}
-            {BRANCH_OFFICE_ADDRESS}.
+            These policies apply to {BRAND_NAME}, operated by {LEGAL_ENTITY_NAME}. Head Office: {HEAD_OFFICE_ADDRESS}.
           </p>
           <p className="mt-6 text-xs uppercase tracking-[0.2em] text-white/35">
             Last updated: {lastUpdated}
@@ -55,7 +54,7 @@ export default function LegalPageLayout({
 
         <div className="mt-8 rounded-2xl border border-white/10 bg-white/[0.03] p-6 text-sm text-white/50">
           <p>
-            For policy questions related to {LEGAL_ENTITY_NAME}, contact us at{" "}
+            For policy questions related to {BRAND_NAME} and {LEGAL_ENTITY_NAME}, contact us at{" "}
             <a
               href={`mailto:${SUPPORT_EMAIL}`}
               className="text-brand-300 hover:text-brand-200 transition-colors"

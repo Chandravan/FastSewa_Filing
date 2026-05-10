@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from "react-router-dom"
 import { ArrowRight, Eye, EyeOff, Lock } from "lucide-react"
 import { Button, Input } from "@/components/ui"
 import { authApi, storeAuthSession } from "@/lib/api"
+import { BRAND_NAME } from "@/lib/support"
 import { notifyError, notifySuccess, notifyWarning } from "@/lib/toast"
 
 export default function ResetPasswordPage() {
@@ -60,10 +61,10 @@ export default function ResetPasswordPage() {
             <div className="w-8 h-8 rounded-lg bg-brand-500 flex items-center justify-center group-hover:scale-105 transition-transform">
               <span className="text-white font-display font-bold text-sm">F</span>
             </div>
-            <span className="font-display font-bold text-white text-lg">Fast<span className="text-gradient">Sewa</span></span>
+            <span className="font-display font-bold text-white text-lg">{BRAND_NAME}</span>
           </Link>
           <h1 className="text-3xl font-display font-bold text-white mb-2">Set a new password</h1>
-          <p className="text-white/45">Choose a strong password for your FastSewa account.</p>
+          <p className="text-white/45">Choose a strong password for your {BRAND_NAME} account.</p>
         </div>
 
         <div className="glass rounded-2xl p-8">

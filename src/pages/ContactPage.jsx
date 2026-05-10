@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { Mail, MapPin, MessageSquare, PhoneCall, Send } from "lucide-react";
 import { Badge, Button } from "@/components/ui";
 import {
-  BRANCH_OFFICE_ADDRESS,
+  BRAND_NAME,
   BUSINESS_HOURS,
   HEAD_OFFICE_ADDRESS,
   LEGAL_ENTITY_NAME,
@@ -16,7 +16,7 @@ import { notifyError, notifySuccess, notifyWarning } from "@/lib/toast";
 function buildWhatsappSupportUrl() {
   const phone = SUPPORT_WHATSAPP_NUMBER || "";
   const url = new URL(`https://wa.me/${phone}`);
-  url.searchParams.set("text", "Hi FastSewa team, I need help with a service inquiry.");
+  url.searchParams.set("text", `Hi ${BRAND_NAME} team, I need help with a service inquiry.`);
   return url.toString();
 }
 
@@ -79,14 +79,14 @@ export default function ContactPage() {
             Contact Us
           </Badge>
           <h1 className="mt-5 text-4xl font-display font-bold text-white md:text-6xl">
-            Talk to {LEGAL_ENTITY_NAME}.
+            Talk to {BRAND_NAME}.
           </h1>
           <p className="mt-4 max-w-3xl text-base leading-relaxed text-white/52 md:text-lg">
             For service guidance, order support, or partnership discussions, connect with our team through email,
             WhatsApp, or the contact form below.
           </p>
           <p className="mt-4 max-w-3xl text-sm leading-relaxed text-white/40 md:text-base">
-            Head Office: {HEAD_OFFICE_ADDRESS}. Branch Office: {BRANCH_OFFICE_ADDRESS}.
+            {BRAND_NAME} is operated by {LEGAL_ENTITY_NAME}. Head Office: {HEAD_OFFICE_ADDRESS}.
           </p>
         </section>
 
@@ -124,15 +124,11 @@ export default function ContactPage() {
               <div className="inline-flex rounded-xl border border-white/10 bg-black/20 p-2.5 text-white/70">
                 <MapPin size={16} />
               </div>
-              <h2 className="mt-3 text-lg font-display font-bold text-white">Office Addresses</h2>
+              <h2 className="mt-3 text-lg font-display font-bold text-white">Head Office Address</h2>
               <div className="mt-3 space-y-3 text-sm text-white/55">
                 <div>
                   <p className="text-[11px] uppercase tracking-[0.18em] text-white/35">Head Office</p>
                   <p className="mt-1 leading-relaxed">{HEAD_OFFICE_ADDRESS}</p>
-                </div>
-                <div>
-                  <p className="text-[11px] uppercase tracking-[0.18em] text-white/35">Branch Office</p>
-                  <p className="mt-1 leading-relaxed">{BRANCH_OFFICE_ADDRESS}</p>
                 </div>
                 <div>
                   <p className="text-[11px] uppercase tracking-[0.18em] text-white/35">Business Hours</p>

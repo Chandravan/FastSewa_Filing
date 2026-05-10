@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { ArrowRight, CheckCircle2, Sparkles } from "lucide-react";
 import { Badge, Button } from "@/components/ui";
 import { servicesApi } from "@/lib/api";
+import { BRAND_NAME } from "@/lib/support";
 import { formatCurrency } from "@/lib/utils";
 
 const planCards = [
@@ -87,7 +88,7 @@ export default function PricingPage() {
             Transparent pricing, no surprises.
           </h1>
           <p className="mt-4 max-w-3xl text-base leading-relaxed text-white/52 md:text-lg">
-            FastSewa follows a straightforward service-based pricing model. You can start with
+            {BRAND_NAME} follows a straightforward service-based pricing model. You can start with
             individual services and scale to bundled support as your compliance needs grow.
           </p>
         </section>

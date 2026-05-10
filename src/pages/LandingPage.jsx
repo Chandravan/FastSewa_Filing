@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom"
 import { ArrowRight, Shield, Clock, Headphones, Star, CheckCircle2, TrendingUp, Users, Award } from "lucide-react"
 import { Button, Card, Badge } from "@/components/ui"
 import { servicesApi } from "@/lib/api"
+import { BRAND_NAME } from "@/lib/support"
 import { formatCurrency } from "@/lib/utils"
 
 export default function LandingPage() {
@@ -47,21 +48,21 @@ export default function LandingPage() {
 function HeroSection({ navigate }) {
   return (
     <section className="relative min-h-screen flex items-center justify-center pt-24 pb-16 overflow-hidden grid-bg">
-      {/* Ambient glow */}
       <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] rounded-full bg-brand-500/8 blur-3xl pointer-events-none" />
 
       <div className="relative max-w-5xl mx-auto px-6 text-center">
         <Badge variant="brand" className="mb-6 animate-fade-up">
-          🇮🇳 India's Fastest Compliance Platform
+          India's Fastest Compliance Platform
         </Badge>
 
         <h1 className="text-5xl sm:text-6xl md:text-7xl font-display font-bold text-white leading-[1.08] mb-6 animate-fade-up animate-delay-100">
-          GST. ITR. ROC.<br />
+          GST. ITR. ROC.
+          <br />
           <span className="text-gradient">Done Right.</span>
         </h1>
 
         <p className="text-lg sm:text-xl text-white/50 max-w-2xl mx-auto mb-10 leading-relaxed animate-fade-up animate-delay-200">
-          FastSewa handles your compliance filings end-to-end — quick turnaround, expert CAs, transparent pricing.
+          {BRAND_NAME} handles your compliance filings end-to-end, with quick turnaround, expert CAs, and transparent pricing.
           No chaos, no missed deadlines.
         </p>
 
@@ -74,7 +75,6 @@ function HeroSection({ navigate }) {
           </Button>
         </div>
 
-        {/* Trust badges */}
         <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-white/35 animate-fade-up animate-delay-400">
           <span className="flex items-center gap-1.5"><CheckCircle2 size={14} className="text-green-400" /> 10,000+ Filings Done</span>
           <span className="flex items-center gap-1.5"><CheckCircle2 size={14} className="text-green-400" /> CA-Verified Work</span>
@@ -160,7 +160,7 @@ function ServiceCard({ service, delay, navigate }) {
   return (
     <Card
       hover
-      className={`animate-fade-up`}
+      className="animate-fade-up"
       style={{ animationDelay: `${delay}ms`, animationFillMode: "both" }}
       onClick={() => navigate(`/order/${service.id}`)}
     >
@@ -180,7 +180,7 @@ function ServiceCard({ service, delay, navigate }) {
 function WhyUsSection() {
   const reasons = [
     { icon: Shield, title: "Secure & Confidential", desc: "Your financial data is encrypted and never shared. CA-supervised processing." },
-    { icon: Clock, title: "Fast Turnaround", desc: "Most filings completed within 24–48 hours. Real-time status updates." },
+    { icon: Clock, title: "Fast Turnaround", desc: "Most filings completed within 24-48 hours. Real-time status updates." },
     { icon: Headphones, title: "Expert Support", desc: "Dedicated CAs and support team reachable via WhatsApp, email, or call." },
     { icon: Star, title: "Transparent Pricing", desc: "Flat fees, no hidden charges. Know exactly what you pay before ordering." },
   ]
@@ -189,7 +189,7 @@ function WhyUsSection() {
     <section className="py-24 border-t border-white/6">
       <div className="max-w-6xl mx-auto px-6">
         <div className="text-center mb-16">
-          <Badge variant="brand" className="mb-3">Why FastSewa</Badge>
+          <Badge variant="brand" className="mb-3">Why {BRAND_NAME}</Badge>
           <h2 className="text-4xl font-display font-bold text-white mb-3">Compliance Without the Headache</h2>
           <p className="text-white/45 max-w-lg mx-auto">We handle the complexity so you can focus on running your business.</p>
         </div>
@@ -258,11 +258,11 @@ function CtaSection({ navigate }) {
             First Filing at <span className="text-gradient">50% Off</span>
           </h2>
           <p className="text-white/45 mb-8 relative max-w-md mx-auto">
-            New clients get their first service at half price. No coupon needed — discount applied automatically.
+            New clients get their first service at half price. No coupon needed, discount applied automatically.
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 relative">
             <Button size="lg" onClick={() => navigate("/register")}>
-              Start Now — It's Free <ArrowRight size={18} />
+              Start Now - It's Free <ArrowRight size={18} />
             </Button>
             <Button variant="outline" size="lg" onClick={() => navigate("/services")}>
               Browse Services

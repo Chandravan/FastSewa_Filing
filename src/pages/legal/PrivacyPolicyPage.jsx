@@ -1,11 +1,12 @@
+import { BRAND_NAME, LEGAL_ENTITY_NAME } from "@/lib/support";
 import LegalPageLayout, { LegalSection } from "@/pages/legal/LegalPageLayout";
 
 export default function PrivacyPolicyPage() {
   return (
     <LegalPageLayout
       label="Privacy Policy"
-      title="Privacy Policy for FastSewa Filings"
-      summary="This policy explains what data FastSewa Filings collects, why we collect it, and how we protect it while delivering compliance and filing services."
+      title={`Privacy Policy for ${BRAND_NAME}`}
+      summary={`This policy explains what data ${BRAND_NAME}, operated by ${LEGAL_ENTITY_NAME}, collects, why we collect it, and how we protect it while delivering compliance and filing services.`}
       lastUpdated="March 29, 2026"
     >
       <LegalSection title="1. Information We Collect">
@@ -35,7 +36,7 @@ export default function PrivacyPolicyPage() {
         </p>
         <p>
           We may also disclose data when required by law, legal process, or to protect the rights and security of
-          FastSewa Filings and its users.
+          {BRAND_NAME}, {LEGAL_ENTITY_NAME}, and their users.
         </p>
       </LegalSection>
 

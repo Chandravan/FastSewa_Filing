@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Award, BadgeCheck, Building2, Clock3, ShieldCheck, Sparkles, Users } from "lucide-react";
 import { Badge, Button } from "@/components/ui";
+import { BRAND_NAME } from "@/lib/support";
 
 const values = [
   {
@@ -56,13 +57,13 @@ export default function AboutPage() {
             variant="brand"
             className="px-3 py-1.5 text-[11px] uppercase tracking-[0.22em]"
           >
-            About FastSewa
+            About {BRAND_NAME}
           </Badge>
           <h1 className="mt-5 text-4xl font-display font-bold text-white md:text-6xl">
             Built for reliable compliance execution.
           </h1>
           <p className="mt-4 max-w-3xl text-base leading-relaxed text-white/52 md:text-lg">
-            FastSewa helps businesses and individuals handle filings with less friction.
+            {BRAND_NAME} helps businesses and individuals handle filings with less friction.
             Our approach blends a structured platform flow with practical support so
             compliance work stays clear, trackable, and on time.
           </p>

@@ -1,3 +1,4 @@
+import { BRAND_NAME, LEGAL_ENTITY_NAME } from "@/lib/support";
 import LegalPageLayout, { LegalSection } from "@/pages/legal/LegalPageLayout";
 
 export default function RefundPolicyPage() {
@@ -5,7 +6,7 @@ export default function RefundPolicyPage() {
     <LegalPageLayout
       label="Refund & Cancellation"
       title="Refund & Cancellation Policy"
-      summary="This policy defines when payments made to FastSewa Filings are refundable, partially refundable, or non-refundable, and how cancellation requests are handled."
+      summary={`This policy defines when payments made to ${BRAND_NAME}, operated by ${LEGAL_ENTITY_NAME}, are refundable, partially refundable, or non-refundable, and how cancellation requests are handled.`}
       lastUpdated="March 29, 2026"
     >
       <LegalSection title="1. General Principles">
@@ -17,9 +18,9 @@ export default function RefundPolicyPage() {
 
       <LegalSection title="2. Eligible Cases">
         <p>Refunds may be considered when:</p>
-        <p>You paid for a service and FastSewa Filings could not initiate processing.</p>
+        <p>You paid for a service through {BRAND_NAME} and we could not initiate processing.</p>
         <p>Duplicate payment was made for the same order.</p>
-        <p>Service is canceled by FastSewa Filings before substantial work begins.</p>
+        <p>Service is canceled by {BRAND_NAME} before substantial work begins.</p>
       </LegalSection>
 
       <LegalSection title="3. Partial / Non-Refundable Cases">
@@ -49,7 +50,7 @@ export default function RefundPolicyPage() {
 
       <LegalSection title="6. How to Request a Refund">
         <p>
-          Share your order number, payment details, and reason for refund through FastSewa Filings support channels.
+          Share your order number, payment details, and reason for refund through {BRAND_NAME} support channels.
           Our team will review and respond with eligibility outcome and next steps.
         </p>
       </LegalSection>

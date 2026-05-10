@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Code2, Linkedin, Mail, Users } from "lucide-react";
 import { Badge } from "@/components/ui";
+import { BRAND_NAME } from "@/lib/support";
 import { cn, getInitials } from "@/lib/utils";
 
 const visionaries = [
@@ -10,7 +11,7 @@ const visionaries = [
     image: "",
     email: "akjha12369@gmail.com",
     linkedin: "https://www.linkedin.com/in/akhilesh-kumar-8557a03a9/",
-    summary: "Leads the overall vision and growth of FastSewa.",
+    summary: `Leads the overall vision and growth of ${BRAND_NAME}.`,
     tone: "bg-orange-500/12 text-orange-300 border-orange-500/20",
   },
   {
@@ -242,7 +243,7 @@ export default function TeamPage() {
             Our Team
           </Badge>
           <h1 className="mt-5 text-4xl font-display font-bold text-white md:text-5xl">
-            Meet the people behind FastSewa.
+            Meet the people behind {BRAND_NAME}.
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-base leading-relaxed text-white/50 md:text-lg">
             We are a focused team working across leadership and engineering to
