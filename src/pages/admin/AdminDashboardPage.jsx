@@ -41,6 +41,7 @@ const INITIAL_OVERVIEW = {
   paymentBreakdown: {
     paid: 0,
     pending: 0,
+    verificationPending: 0,
     failed: 0,
   },
   topServices: [],
@@ -181,7 +182,7 @@ export default function AdminDashboardPage() {
           icon={CreditCard}
           label="Pending Billing"
           value={formatCurrency(overview.stats.pendingRevenue)}
-          hint={`${overview.paymentBreakdown.pending} orders awaiting collection`}
+          hint={`${overview.paymentBreakdown.pending} pending, ${overview.paymentBreakdown.verificationPending || 0} verifying`}
           tone="bg-yellow-500/10 text-yellow-300"
         />
         <MetricCard
@@ -278,9 +279,10 @@ export default function AdminDashboardPage() {
             <p className="text-xs uppercase tracking-[0.24em] text-white/30 mb-2">Cash Flow</p>
             <h2 className="text-2xl font-display font-bold text-white mb-5">Payment health snapshot</h2>
 
-            <div className="grid grid-cols-3 gap-3 mb-5">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
               <PaymentMini label="Paid" value={overview.paymentBreakdown.paid} tone="status-paid" />
               <PaymentMini label="Pending" value={overview.paymentBreakdown.pending} tone="status-pending" />
+              <PaymentMini label="Verifying" value={overview.paymentBreakdown.verificationPending || 0} tone="status-verifying" />
               <PaymentMini label="Failed" value={overview.paymentBreakdown.failed} tone="status-failed" />
             </div>
 

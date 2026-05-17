@@ -4,6 +4,7 @@ import {
   ArrowLeft, CheckCircle2, Circle, Upload, FileText,
   User, Calendar, CreditCard, MessageSquare
 } from "lucide-react"
+import PaymentVerificationPanel from "@/components/admin/PaymentVerificationPanel"
 import { Button, StatusBadge } from "@/components/ui"
 import { useAuth } from "@/hooks/useAuth"
 import { ordersApi, submitHostedPayment } from "@/lib/api"
@@ -12,6 +13,8 @@ import { getOrderAssignmentOptions } from "@/lib/orderAssignments"
 import { buildWhatsAppUrl } from "@/lib/support"
 import { notifyError, notifyInfo, notifySuccess, notifyWarning } from "@/lib/toast"
 import { formatCurrency, formatDate, cn } from "@/lib/utils"
+
+const DEFAULT_PAYMENT_SOURCE = "CCAvenue dashboard"
 
 export default function OrderDetailPage() {
   const { user } = useAuth()
@@ -29,6 +32,10 @@ export default function OrderDetailPage() {
     paymentStatus: "pending",
     assignedTo: "",
     notes: "",
+    paymentVerificationSource: DEFAULT_PAYMENT_SOURCE,
+    paymentVerificationNote: "",
+    paymentTrackingId: "",
+    paymentBankRefNo: "",
   })
   const canViewAdminOrderDetails = hasAnyPermission(user, ["orders.view", "orders.manage", "orders.bulk"])
   const canManageOrder = hasPermission(user, "orders.manage")
@@ -114,6 +121,10 @@ export default function OrderDetailPage() {
       paymentStatus: order.paymentStatus,
       assignedTo: order.assignedTo || "",
       notes: order.notes || "",
+      paymentVerificationSource: DEFAULT_PAYMENT_SOURCE,
+      paymentVerificationNote: "",
+      paymentTrackingId: order.payment?.trackingId || "",
+      paymentBankRefNo: order.payment?.bankRefNo || "",
     })
   }, [order])
 
@@ -123,6 +134,11 @@ export default function OrderDetailPage() {
 
   const handleAdminSave = async () => {
     if (!order) return
+
+    if (adminForm.paymentStatus !== order.paymentStatus && !adminForm.paymentVerificationNote.trim()) {
+      notifyWarning("Payment status change ke liye internal verification note required hai.")
+      return
+    }
 
     setSavingAdmin(true)
     try {
@@ -149,6 +165,10 @@ export default function OrderDetailPage() {
 
   const paymentState = searchParams.get("payment")
   const paymentMessage = searchParams.get("message")
+  const paymentAttemptStatus = order?.payment?.attemptStatus || "none"
+  const isPaymentInProgress = paymentAttemptStatus === "initiated" && order?.paymentStatus !== "verification_pending"
+  const isPaymentVerifying = order?.paymentStatus === "verification_pending" || paymentAttemptStatus === "verification_pending"
+  const canStartPayment = order?.paymentStatus !== "paid" && order?.paymentStatus !== "refunded" && !isPaymentInProgress && !isPaymentVerifying
 
   useEffect(() => {
     if (!paymentState) {
@@ -342,12 +362,20 @@ export default function OrderDetailPage() {
                         onChange={setAdminField("paymentStatus")}
                         className="w-full rounded-xl bg-white/5 border border-white/10 text-white px-4 py-2.5 text-sm focus:outline-none focus:border-brand-500/50 transition-all"
                       >
-                        {["pending", "paid", "failed", "refunded"].map((status) => (
+                        {["pending", "verification_pending", "paid", "failed", "refunded"].map((status) => (
                           <option key={status} value={status} className="bg-[#121212]">{status}</option>
                         ))}
                       </select>
                     </div>
                   </div>
+
+                  <PaymentVerificationPanel
+                    disabled={!canManageOrder}
+                    currentPaymentStatus={order.paymentStatus}
+                    form={adminForm}
+                    onFieldChange={setAdminField}
+                    payment={order.payment}
+                  />
 
                   <div>
                     <label className="text-xs text-white/35 block mb-1.5">Assigned Team</label>
@@ -385,14 +413,24 @@ export default function OrderDetailPage() {
             {order.paymentStatus !== "paid" && (
               <div className="glass rounded-xl p-5 border border-yellow-500/20">
                 <p className="text-sm font-medium text-yellow-400 mb-3">
-                  {order.paymentStatus === "failed" ? "Payment Failed" : "Payment Pending"}
+                  {order.paymentStatus === "failed"
+                    ? "Payment Failed"
+                    : isPaymentInProgress
+                      ? "Payment In Progress"
+                      : isPaymentVerifying
+                        ? "Payment Under Verification"
+                        : "Payment Pending"}
                 </p>
                 <p className="text-xs text-white/40 mb-4">
                   {order.paymentStatus === "failed"
                     ? "Retry the payment on CCAvenue to resume order processing."
-                    : "Complete payment on CCAvenue to start processing your order."}
+                    : isPaymentInProgress
+                      ? "CCAvenue payment has already been opened for this order. Please finish that payment or wait for confirmation."
+                      : isPaymentVerifying
+                        ? "We are verifying this payment. Please contact support before making another payment."
+                        : "Complete payment on CCAvenue to start processing your order."}
                 </p>
-                <Button className="w-full" size="sm" loading={processingPayment} onClick={handlePayment}>
+                <Button className="w-full" size="sm" loading={processingPayment} disabled={!canStartPayment} onClick={handlePayment}>
                   {order.paymentStatus === "failed" ? "Retry on CCAvenue" : `Pay ${formatCurrency(order.pricing?.totalAmount || order.amount)}`}
                 </Button>
               </div>

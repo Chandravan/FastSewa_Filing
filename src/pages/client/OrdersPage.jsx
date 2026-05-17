@@ -132,7 +132,9 @@ function OrderRow({ order, delay, navigate, isAdmin }) {
     ? "Paid"
     : order.paymentStatus === "failed"
       ? "Payment failed"
-      : "Payment pending"
+      : order.paymentStatus === "verification_pending"
+        ? "Verifying payment"
+        : "Payment pending"
 
   return (
     <div

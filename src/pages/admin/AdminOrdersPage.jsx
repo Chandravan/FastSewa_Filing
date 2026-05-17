@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react"
 import { ArrowRight, CheckSquare, ClipboardList, CreditCard, Search, Sparkles } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import AdminShell from "@/components/admin/AdminShell"
+import PaymentVerificationPanel from "@/components/admin/PaymentVerificationPanel"
 import { Badge, Button, StatusBadge } from "@/components/ui"
 import { useAuth } from "@/hooks/useAuth"
 import { hasPermission } from "@/lib/adminPermissions"
@@ -11,17 +12,24 @@ import { notifyError, notifySuccess, notifyWarning } from "@/lib/toast"
 import { cn, formatCurrency, formatDate } from "@/lib/utils"
 
 const STATUS_FILTERS = ["All", "pending", "processing", "completed", "cancelled"]
-const PAYMENT_FILTERS = ["All", "pending", "paid", "failed", "refunded"]
+const PAYMENT_FILTERS = ["All", "pending", "verification_pending", "paid", "failed", "refunded"]
+const DEFAULT_PAYMENT_SOURCE = "CCAvenue dashboard"
 const EMPTY_FORM = {
   status: "pending",
   paymentStatus: "pending",
   assignedTo: "",
   notes: "",
+  paymentVerificationSource: DEFAULT_PAYMENT_SOURCE,
+  paymentVerificationNote: "",
+  paymentTrackingId: "",
+  paymentBankRefNo: "",
 }
 const EMPTY_BULK_FORM = {
   status: "",
   paymentStatus: "",
   assignedTo: "",
+  paymentVerificationSource: DEFAULT_PAYMENT_SOURCE,
+  paymentVerificationNote: "",
 }
 
 export default function AdminOrdersPage() {
@@ -103,6 +111,10 @@ export default function AdminOrdersPage() {
       paymentStatus: selectedOrder.paymentStatus,
       assignedTo: selectedOrder.assignedTo || "",
       notes: selectedOrder.notes || "",
+      paymentVerificationSource: DEFAULT_PAYMENT_SOURCE,
+      paymentVerificationNote: "",
+      paymentTrackingId: selectedOrder.payment?.trackingId || "",
+      paymentBankRefNo: selectedOrder.payment?.bankRefNo || "",
     })
   }, [selectedOrder])
 
@@ -110,7 +122,7 @@ export default function AdminOrdersPage() {
     total: orders.length,
     processing: orders.filter((order) => order.status === "processing").length,
     pending: orders.filter((order) => order.status === "pending").length,
-    paymentIssues: orders.filter((order) => order.paymentStatus === "failed").length,
+    paymentIssues: orders.filter((order) => ["failed", "verification_pending"].includes(order.paymentStatus)).length,
   }), [orders])
   const assignmentOptions = useMemo(
     () => getOrderAssignmentOptions(form.assignedTo, {
@@ -170,6 +182,11 @@ export default function AdminOrdersPage() {
   async function handleSave() {
     if (!selectedOrder || !canManageOrders) return
 
+    if (form.paymentStatus !== selectedOrder.paymentStatus && !form.paymentVerificationNote.trim()) {
+      notifyWarning("Payment status change ke liye internal verification note required hai.")
+      return
+    }
+
     setSaving(true)
     try {
       const data = await ordersApi.adminUpdate(selectedOrder.id, form)
@@ -192,6 +209,14 @@ export default function AdminOrdersPage() {
     if (bulkForm.status) payload.status = bulkForm.status
     if (bulkForm.paymentStatus) payload.paymentStatus = bulkForm.paymentStatus
     if (bulkForm.assignedTo.trim()) payload.assignedTo = bulkForm.assignedTo.trim()
+    if (bulkForm.paymentStatus) {
+      if (!bulkForm.paymentVerificationNote.trim()) {
+        notifyWarning("Bulk payment status change ke liye verification note required hai.")
+        return
+      }
+      payload.paymentVerificationSource = bulkForm.paymentVerificationSource
+      payload.paymentVerificationNote = bulkForm.paymentVerificationNote.trim()
+    }
 
     if (Object.keys(payload).length === 1) {
       notifyWarning("Choose at least one bulk update field before applying the action.")
@@ -330,6 +355,23 @@ export default function AdminOrdersPage() {
                   </select>
                 </div>
 
+                {bulkForm.paymentStatus && (
+                  <div className="grid sm:grid-cols-[0.7fr,1.3fr] gap-3">
+                    <input
+                      value={bulkForm.paymentVerificationSource}
+                      onChange={setBulkField("paymentVerificationSource")}
+                      className="rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/25 px-4 py-2.5 text-sm focus:outline-none focus:border-brand-500/50 transition-all"
+                      placeholder="Verification source"
+                    />
+                    <input
+                      value={bulkForm.paymentVerificationNote}
+                      onChange={setBulkField("paymentVerificationNote")}
+                      className="rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/25 px-4 py-2.5 text-sm focus:outline-none focus:border-brand-500/50 transition-all"
+                      placeholder="Required note: verified records before bulk payment update"
+                    />
+                  </div>
+                )}
+
                 <div className="flex flex-col sm:flex-row gap-3">
                   <SelectField
                     label="Bulk team assignment"
@@ -435,6 +477,14 @@ export default function AdminOrdersPage() {
                 <SelectField disabled={!canManageOrders} label="Order Status" value={form.status} onChange={setField("status")} options={STATUS_FILTERS.filter((item) => item !== "All")} />
                 <SelectField disabled={!canManageOrders} label="Payment Status" value={form.paymentStatus} onChange={setField("paymentStatus")} options={PAYMENT_FILTERS.filter((item) => item !== "All")} />
               </div>
+
+              <PaymentVerificationPanel
+                disabled={!canManageOrders}
+                currentPaymentStatus={selectedOrder.paymentStatus}
+                form={form}
+                onFieldChange={setField}
+                payment={selectedOrder.payment}
+              />
 
               <SelectField
                 disabled={!canManageOrders}

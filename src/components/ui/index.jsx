@@ -255,6 +255,7 @@ export function ConfirmDialog({
 export function StatusBadge({ status }) {
   const config = {
     pending:    { label: "Pending",    cls: "status-pending" },
+    verification_pending: { label: "Verifying", cls: "status-verifying" },
     paid:       { label: "Paid",       cls: "status-paid" },
     failed:     { label: "Failed",     cls: "status-failed" },
     refunded:   { label: "Refunded",   cls: "status-refunded" },

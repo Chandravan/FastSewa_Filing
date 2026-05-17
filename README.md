@@ -1,4 +1,4 @@
-# JhaJi Fastsewa E Facilities Pvt Ltd — Frontend
+# Fastsewa Filings Pvt. Ltd. — Frontend
 
 React + Vite + Tailwind CSS + Shadcn UI
 
@@ -139,4 +139,4 @@ rzp.open()
 
 ---
 
-Built with ❤️ for JhaJi Fastsewa E Facilities Pvt Ltd
+Built with ❤️ for Fastsewa Filings Pvt. Ltd.

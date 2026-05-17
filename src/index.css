@@ -101,6 +101,7 @@
   .animate-delay-500 { animation-delay: 500ms; }
 
   .status-pending   { @apply bg-yellow-500/10 text-yellow-400 border border-yellow-500/20; }
+  .status-verifying { @apply bg-cyan-500/10 text-cyan-300 border border-cyan-500/20; }
   .status-paid      { @apply bg-blue-500/10 text-blue-400 border border-blue-500/20; }
   .status-failed    { @apply bg-red-500/10 text-red-400 border border-red-500/20; }
   .status-refunded  { @apply bg-slate-500/10 text-slate-300 border border-slate-500/20; }

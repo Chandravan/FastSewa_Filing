@@ -24,6 +24,7 @@ export function formatDate(dateStr) {
 export function getStatusColor(status) {
   const map = {
     pending: "status-pending",
+    verification_pending: "status-verifying",
     paid: "status-paid",
     failed: "status-failed",
     refunded: "status-refunded",
