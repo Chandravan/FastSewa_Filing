@@ -1,9 +1,9 @@
 const DEFAULT_SUPPORT_EMAIL = "support@fastsewa.in"
-const DEFAULT_SUPPORT_WHATSAPP_NUMBER = "918275723755"
+const DEFAULT_SUPPORT_WHATSAPP_NUMBER = "919504341172"
 
 export const BRAND_NAME = "FastSewa Filings"
 export const LEGAL_ENTITY_NAME = "Fastsewa Filings Pvt. Ltd."
-export const HEAD_OFFICE_ADDRESS = "At - Bairiya, Behind Bharat Gas Godam, P.O. - Bairiya, P.S. - Gopalpur, Block - Sampat Chak, District - Patna, State - Bihar - 800007"
+export const HEAD_OFFICE_ADDRESS = "At - Abirpur, Post Office - Hansi Kewal, P.S. - Bhagwanpur, Pincode - 844131, District - Vaishali, State - Bihar"
 export const BUSINESS_HOURS = "09:00 AM - 09:00 PM"
 
 function normalizeWhatsappNumber(value) {

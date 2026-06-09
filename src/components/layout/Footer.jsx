@@ -91,7 +91,7 @@ export default function Footer() {
 
         <div className="mt-12 pt-8 border-t border-white/8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-xs text-white/25">{BRAND_NAME} is operated by {LEGAL_ENTITY_NAME}.</p>
-          <p className="text-xs text-white/20">Head Office | Patna, Bihar 800007</p>
+          <p className="text-xs text-white/20">Head Office | Vaishali, Bihar 844131</p>
         </div>
       </div>
     </footer>
